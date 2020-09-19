@@ -30,7 +30,7 @@ twitter_username: NewSouthpole
 github_username:  msfchen
 
 # Build settings
-theme: minima
+theme: jekyll-theme-dinky
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
