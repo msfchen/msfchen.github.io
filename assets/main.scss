@@ -1,0 +1,11 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+@import "minima";
+.site-header { border-top: 5px solid #424242; border-bottom: 1px solid #e8e8e8; min-height: 55.95px; position: relative; background-color: #550a8a; }
+.site-title, .site-title:visited { color: #ffffff; background-color: #550a8a; }
+.site-nav .page-link { color: #ffffff; line-height: 1.5; }
+
+.site-footer { border-top: 1px solid #e8e8e8; padding: 30px 0; background-color: #550a8a; }
+.footer-col-wrapper { font-size: 15px; color: #ffffff; margin-left: -15px; }
