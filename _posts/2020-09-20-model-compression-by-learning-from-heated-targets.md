@@ -86,14 +86,14 @@ Tang et al., 2020<sup>[\[8\]](#ref8)</sup> showed that label smoothing is one of
 ### **Prior of optimal geometry in logit layer**
 
 ## **Example Applications**
-1. 2018_^_On-device neural language model based word prediction
-2. 2019_TINYBERT DISTILLING BERT FOR NATURAL LANGUAGE UNDERSTANDING
+<!-- 1. 2018_^_On-device neural language model based word prediction
+2. 2019_TINYBERT DISTILLING BERT FOR NATURAL LANGUAGE UNDERSTANDING -->
 
 ## **Quick Start Tools**
-1. PyTorch
+<!-- 1. PyTorch
     1. Neural Network Distiller (https://nervanasystems.github.io/distiller/index.html)?
     
-2. Tensor Flow
+2. Tensor Flow -->
 
 ## **References**
 
