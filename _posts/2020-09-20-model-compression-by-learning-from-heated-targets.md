@@ -14,6 +14,7 @@ Most of the recent breakthroughs from deep neural network models were accompanie
     - [Label Smoothing](#label-smoothing)
     - [Example re-weighting](#example-re-weighting)
     - [Prior of optimal geometry in logit layer](#prior-of-optimal-geometry-in-logit-layer)
+    - [Order of contributions](#order-of-contributions)
 - [Example Applications](#example-applications)
 
 ## **What is knowledge distillation?**
@@ -36,7 +37,7 @@ For any given training instance, raising softmax temperature will decrease the p
 
 In classification task, the ground truth class has label 1 and all other negative classes have label 0, namely one-hot labels. These are called hard targets. The predicted label is 1 for the class with the highest predicted probability, the argmax of the softmax outputs, and 0 for all other classes. The main idea of Distillation is to use predicted softmax values from the large pre-trained model as the targets, called soft targets, for the small model using the same raised temperature (T > 1). This method can be significantly improved by also training the distilled model to produce correct hard targets at T = 1. The overall objective function can be a weighted average of the two objective functions. The training data is called transfer set that can be entirely different from the original training set of the large model. Using the original training set as the transfer set also works well.
 <p align="center"><img src="../../../assets/images/KD_nn_architecture.png">
-<br><em>Source: https://nervanasystems.github.io/distiller/knowledge_distillation.html</em></p>
+<br><em>Source of the Diagram: https://nervanasystems.github.io/distiller/knowledge_distillation.html</em></p>
 
 Overall cross entropy objective function:
 <p align="center">
@@ -101,9 +102,15 @@ Tang et al., 2020<sup>[\[8\]](#ref8)</sup> introduced the term, gradient rescali
 
 ### **Prior of optimal geometry in logit layer**
 
-Intuitively, logit $$z_k=h^{T}w_k$$ of the *k-th* class can be thought of as a measure of the squared Euclidean distance between the activations of the penultimate layer *h* and a weight template $$w_k$$, as $$\|h-w_k\|^{2}$$. Tang et al., 2020<sup>[\[8\]](#ref8)</sup> showed mathematically that at the optimal solution of the student, namely having the logits gradient for knowledge distillation loss as 0, for *T=1*, and for any two incorrect classes *i* and *j*, $$\|h-w_i\|^{2}<\|h-w_j\|^{2}$$ *iif* $$p_i>p_j$$. This suggests that the similarity relationship between incorrect classes is a part of the driving force to the optimal solution of the knowledge distillation. 
+Intuitively, logit $$z_k=h^{T}w_k$$ of the *k-th* class can be thought of as a measure of the squared Euclidean distance between the activations of the penultimate layer *h* and a weight template $$w_k$$, as $$\|h-w_k\|^{2}$$. Tang et al., 2020<sup>[\[8\]](#ref8)</sup> showed mathematically that at the optimal solution of the student, namely having the logits gradient for knowledge distillation loss as 0, for *T=1*, and for any two incorrect classes *i* and *j*, $$\|h-w_i\|^{2}<\|h-w_j\|^{2}$$ *iif* $$p_i>p_j$$. This suggests that the similarity relationship between incorrect classes is a part of the driving force to the optimal solution of student's output logit layer.
 
 Tang et al., 2020<sup>[\[8\]](#ref8)</sup> also showed experimentally that using CIFAR-100 dataset containing 20 super-classes with 5 sub-classes each, classes within the same super-class have high correlations to each other in their teacher predicted probabilities at high temperature, but not at low temperature. This shows that teacher knowledge of class relationship is distilled to encourage hierachical clustering.
+
+### **Order of contributions**
+
+To dissect the contributions of the two different mechanisms to the overall benefits of knowledge distillation, Tang et al., 2020<sup>[\[8\]](#ref8)</sup> devised synthetic teacher distributions $$\rho^{pt}$$ and $$\rho^{sim}$$ to isolate the effects of example re-weighting and optimal prior geometry of class relationship, respectively. The results showed that the benefits are in the order: exmaple re-weighting > optimal prior geometry of class relationship > label smoothing.
+
+The authors also discovered that adopting only the top-*k* largest values from the teacher distributions resulted in a better quality student model, probably due to reduced noise in teacher distributions. The best *k* for the novel KD-topk method was 25%*K* in CIFAR-100 dataset and 50%*K* in ImageNet dataset.
 
 ## **Example Applications**
 <!-- 1. 2018_^_On-device neural language model based word prediction
