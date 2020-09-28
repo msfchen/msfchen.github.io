@@ -16,6 +16,9 @@ Most of the recent breakthroughs from deep neural network models were accompanie
     - [Prior of optimal geometry in logit layer](#prior-of-optimal-geometry-in-logit-layer)
     - [Order of contributions](#order-of-contributions)
 - [Example Applications](#example-applications)
+    - [Samsung Galaxy S7 keyboard language model compression](#samsung-galaxy-s7-keyboard-language-model-compression)
+    - [TinyBERT - Distilling from Attention Layers](#tinybert-distilling-from-attention-layers)
+- [Codes](#codes)
 
 ## **What is knowledge distillation?**
 
@@ -113,14 +116,32 @@ To dissect the contributions of the two different mechanisms to the overall bene
 The authors also discovered that adopting only the top-*k* largest values from the teacher distributions resulted in a better-quality student model, probably due to reduced noise in teacher distributions. The best *k* for the novel KD-topk method was 25%*K* in CIFAR-100 dataset and 50%*K* in ImageNet dataset.
 
 ## **Example Applications**
-<!-- 1. 2018_^_On-device neural language model based word prediction
-2. 2019_TINYBERT DISTILLING BERT FOR NATURAL LANGUAGE UNDERSTANDING -->
 
-## **Quick Start Tools**
-<!-- 1. PyTorch
-    1. Neural Network Distiller (https://nervanasystems.github.io/distiller/index.html)?
-    
-2. Tensor Flow -->
+In practical model compression, knowledge distillation is often combined with other methods.
+
+### **Samsung Galaxy S7 keyboard language model compression**
+
+Yu et al., 2018<sup>[\[9\]](#ref9)</sup> distilled an ensemble of *K* teacher models into an LSTM-based student model, then applied three types of compression methods in sequence: shared matrix factorization, singular value decomposition (SVD), and 16-bit quantization to achieve state-of-art performance (at the time of its publication) in commercial mobile keyboard word prediction, by metrics of Keystroke Savings (KS) and Word Prediction Rate (WPR). The shared matrix factorization method reduced the total parameters in embedding and softmax layers by half. The SVD used *r* top singular values to achieve low rank compression (from $$m\times n$$ to $$m\times r$$ and $$r\times n$$), which was re-trained to restore accuracy. The 16-bit quantization reduced numerical precision of parameters from 32-bit to 16-bit. It compressed a 56.76MB model to 7.40MB, a compression ratio of 7.68, with only 5% loss in perplexity and achieved average prediction time of 6.47 ms.
+
+### **TinyBERT - Distilling from Attention Layers**
+
+Most recent advancements in natural language processing are based on the Transformer<sup>[\[10\]](#ref10)</sup> neural network that does not rely on sequential recurrent network. Instead, it is solely based on attention mechanisms to process all tokens at the same time and calculating attention weights between them. It consists of multiple layers, each of which has multiple attention heads. BERT<sup>[\[11\]](#ref11)</sup> was designed to pre-train a deep bidirectional transformer on large scale corpus of unlabeled data from general domain. The pre-trained BERT model can then be fine-tuned with just one additional output layer to create state-of-the-art models for a wide range of supervised tasks, such as question answering and language inference. Clark et al., 2019<sup>[\[12\]](#ref12)</sup> showed that substantial syntactic information is captured in BERT's attention. They showed that different attention heads specialize to different aspects of syntax and attention heads in the same layer tend to behave similarly.
+
+In order to distill the knowledge of syntactic information from the attention layers of BERT model, Jiao et al., 2019<sup>[\[13\]](#ref13)</sup> devised a novel transformer distillation method that distilled from multiple layers of the teacher model and in both pre-training and task-specific training stages. The student model achieved 96% of the teacher performance on GLUE benchmark with 7.5x smaller size and 9.4x faster inference. It also significantly outperformed other earlier attempts to do knowledge distillation on BERT without distilling from attention layers.
+
+## **Codes**
+
+- PyTorch
+    - [Neural Network Distiller by Intel AI Lab](https://github.com/NervanaSystems/distiller)
+    - [A PyTorch Implementation of Knowledge Distillation](https://github.com/peterliht/knowledge-distillation-pytorch)
+    - [TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model/tree/master/TinyBERT)
+- TensorFlow
+    - [knowledge distillation via TF2.0](https://github.com/sseung0703/Knowledge_distillation_via_TF2.0)
+    - [Knowledge Distillation Methods with Tensorflow](https://github.com/sseung0703/KD_methods_with_TF)
+    - [Knowledge Distillation - Tensorflow](https://github.com/DushyantaDhyani/kdtf)
+- Keras
+    - [Knowledge distillation with Keras](https://github.com/TropComplique/knowledge-distillation-keras)
+    - [Knowledge distillation](https://github.com/tejasgodambe/knowledge-distillation)
 
 ## **References**
 
@@ -132,10 +153,20 @@ The authors also discovered that adopting only the top-*k* largest values from t
 
 <a name="ref4">[4]</a> Hinton G , Vinyals O , Dean J. (2015) Distilling the Knowledge in a Neural Network. arXiv preprint arXiv:1503.02531
 
-<a name="ref5">[5]</a> Szegedy C., Vanhoucke V., Ioffe S., Shlens J., Wojna, Z. (2016) Rethinking the inception architecture for computer vision. In Proceedings of the IEEE conference on computer vision and pattern recognition, 2818–2826
+<a name="ref5">[5]</a> Szegedy C., Vanhoucke V., Ioffe S., Shlens J., Wojna, Z. (2016) Rethinking the inception architecture for computer vision. In: Proceedings of the IEEE conference on computer vision and pattern recognition, 2818–2826
 
 <a name="ref6">[6]</a> Yuan, L., Tay, F. E., Li, G., Wang, T., Feng, J. (2019) Revisit knowledge distillation: a teacher-free framework. arXiv preprint arXiv:1909.11723
 
 <a name="ref7">[7]</a> M&#252;ller, R., Kornblith, S., Hinton, G. (2019) When does label smoothing help? arXiv preprint arXiv:1906.02629
 
 <a name="ref8">[8]</a> Tang, J., Shivanna, R., Zhao, Z., Lin, D., Singh, A., Chi, E. H., Jain, S. (2020) Understanding and Improving Knowledge Distillation. arXiv preprint arXiv:2002.03532
+
+<a name="ref9">[9]</a> Yu, S., Kulkarni, N., Lee, H., Kim, J. (2018) On-Device Neural Language Model based Word Prediction. In: Proceedings of the 27th International Conference on Computational Linguistics: System Demonstrations, 128-131
+
+<a name="ref10">[10]</a> Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A N., Kaiser, L., Polosukhin, I. (2017) Attention is all you need. In: Advances in Neural Information Processing Systems, 6000–6010
+
+<a name="ref11">[11]</a> Devlin, J., Chang, M., Lee, K., Toutanova, K. (2019) BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. arXiv preprint arXiv:1810.04805v2
+
+<a name="ref12">[12]</a> Clark, K., Khandelwal, U., Levy, O., Manning, C. (2019) What does BERT look at? An analysis of BERT’s attention. arXiv preprint arXiv:1906.04341
+
+<a name="ref13">[13]</a> Jiao, X., Yin, Y., Shang, L., Jiang, X., Chen, X., Li, L., Wang, F., Liu, Q. (2019) TinyBERT: Distilling BERT for Natural Language Understanding. arXiv preprint arXiv:1909.10351v4
