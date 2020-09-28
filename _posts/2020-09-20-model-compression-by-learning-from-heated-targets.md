@@ -17,7 +17,7 @@ Most of the recent breakthroughs from deep neural network models were accompanie
     - [Order of contributions](#order-of-contributions)
 - [Example Applications](#example-applications)
     - [Samsung Galaxy S7 keyboard language model compression](#samsung-galaxy-s7-keyboard-language-model-compression)
-    - [TinyBERT - Distilling from Attention Layers](#tinybert-distilling-from-attention-layers)
+    - [TinyBERT - Distilling from Attention Layers](#tinybert---distilling-from-attention-layers)
 - [Codes](#codes)
 
 ## **What is knowledge distillation?**
