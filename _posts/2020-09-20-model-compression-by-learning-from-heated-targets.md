@@ -19,6 +19,7 @@ Most of the recent breakthroughs from deep neural network models were accompanie
     - [Samsung Galaxy S7 keyboard language model compression](#samsung-galaxy-s7-keyboard-language-model-compression)
     - [TinyBERT - Distilling from Attention Layers](#tinybert---distilling-from-attention-layers)
 - [Codes](#codes)
+- [References](#references)
 
 ## **What is knowledge distillation?**
 
@@ -145,28 +146,28 @@ In order to distill the knowledge of syntactic information from the attention la
 
 ## **References**
 
-<a name="ref1">[1]</a> Cheng, Y., Wang, D., Zhou, P., Zhang, T. (2018). Model compression and acceleration for deep neural networks: The principles, progress, and challenges. IEEE Signal Proc Mag 35(1):126–136
+<a name="ref1">[1]</a> Cheng, Y., Wang, D., Zhou, P., Zhang, T. (2018). [Model compression and acceleration for deep neural networks: The principles, progress, and challenges](https://www.gwern.net/docs/ai/2018-cheng.pdf). IEEE Signal Proc Mag 35(1):126–136
 
-<a name="ref2">[2]</a> Bucilu, C., Caruana, R., Niculescu-Mizil, A. (2006) Model compression. In: Proceedings of the 12th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, ACM 535–541
+<a name="ref2">[2]</a> Bucilu, C., Caruana, R., Niculescu-Mizil, A. (2006) [Model compression](http://www.niculescu-mizil.org/papers/rtpp364-bucila.rev2.pdf). In: Proceedings of the 12th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, ACM 535–541
 
-<a name="ref3">[3]</a> Ba J., Caruana R. (2014) Do deep nets really need to be deep? In: Advances in neural information processing systems. 2654–2662
+<a name="ref3">[3]</a> Ba J., Caruana R. (2014) [Do deep nets really need to be deep?](https://papers.nips.cc/paper/5484-do-deep-nets-really-need-to-be-deep.pdf) In: Advances in neural information processing systems. 2654–2662
 
-<a name="ref4">[4]</a> Hinton G , Vinyals O , Dean J. (2015) Distilling the Knowledge in a Neural Network. arXiv preprint arXiv:1503.02531
+<a name="ref4">[4]</a> Hinton G , Vinyals O , Dean J. (2015) [Distilling the Knowledge in a Neural Network](https://arxiv.org/pdf/1503.02531.pdf). arXiv preprint arXiv:1503.02531
 
-<a name="ref5">[5]</a> Szegedy C., Vanhoucke V., Ioffe S., Shlens J., Wojna, Z. (2016) Rethinking the inception architecture for computer vision. In: Proceedings of the IEEE conference on computer vision and pattern recognition, 2818–2826
+<a name="ref5">[5]</a> Szegedy C., Vanhoucke V., Ioffe S., Shlens J., Wojna, Z. (2016) [Rethinking the inception architecture for computer vision](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Szegedy_Rethinking_the_Inception_CVPR_2016_paper.pdf). In: Proceedings of the IEEE conference on computer vision and pattern recognition, 2818–2826
 
-<a name="ref6">[6]</a> Yuan, L., Tay, F. E., Li, G., Wang, T., Feng, J. (2019) Revisit knowledge distillation: a teacher-free framework. arXiv preprint arXiv:1909.11723
+<a name="ref6">[6]</a> Yuan, L., Tay, F. E., Li, G., Wang, T., Feng, J. (2019) [Revisit knowledge distillation: a teacher-free framework](https://arxiv.org/pdf/1909.11723.pdf). arXiv preprint arXiv:1909.11723
 
-<a name="ref7">[7]</a> M&#252;ller, R., Kornblith, S., Hinton, G. (2019) When does label smoothing help? arXiv preprint arXiv:1906.02629
+<a name="ref7">[7]</a> M&#252;ller, R., Kornblith, S., Hinton, G. (2019) [When does label smoothing help?](https://papers.nips.cc/paper/8717-when-does-label-smoothing-help.pdf) arXiv preprint arXiv:1906.02629
 
-<a name="ref8">[8]</a> Tang, J., Shivanna, R., Zhao, Z., Lin, D., Singh, A., Chi, E. H., Jain, S. (2020) Understanding and Improving Knowledge Distillation. arXiv preprint arXiv:2002.03532
+<a name="ref8">[8]</a> Tang, J., Shivanna, R., Zhao, Z., Lin, D., Singh, A., Chi, E. H., Jain, S. (2020) [Understanding and Improving Knowledge Distillation](https://arxiv.org/pdf/2002.03532.pdf). arXiv preprint arXiv:2002.03532
 
-<a name="ref9">[9]</a> Yu, S., Kulkarni, N., Lee, H., Kim, J. (2018) On-Device Neural Language Model based Word Prediction. In: Proceedings of the 27th International Conference on Computational Linguistics: System Demonstrations, 128-131
+<a name="ref9">[9]</a> Yu, S., Kulkarni, N., Lee, H., Kim, J. (2018) [On-Device Neural Language Model based Word Prediction](https://www.aclweb.org/anthology/C18-2028.pdf). In: Proceedings of the 27th International Conference on Computational Linguistics: System Demonstrations, 128-131
 
-<a name="ref10">[10]</a> Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A N., Kaiser, L., Polosukhin, I. (2017) Attention is all you need. In: Advances in Neural Information Processing Systems, 6000–6010
+<a name="ref10">[10]</a> Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A N., Kaiser, L., Polosukhin, I. (2017) [Attention is all you need](https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf). In: Advances in Neural Information Processing Systems, 6000–6010
 
-<a name="ref11">[11]</a> Devlin, J., Chang, M., Lee, K., Toutanova, K. (2019) BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. arXiv preprint arXiv:1810.04805v2
+<a name="ref11">[11]</a> Devlin, J., Chang, M., Lee, K., Toutanova, K. (2019) [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/pdf/1810.04805.pdf?source=post_elevate_sequence_page---------------------------). arXiv preprint arXiv:1810.04805v2
 
-<a name="ref12">[12]</a> Clark, K., Khandelwal, U., Levy, O., Manning, C. (2019) What does BERT look at? An analysis of BERT’s attention. arXiv preprint arXiv:1906.04341
+<a name="ref12">[12]</a> Clark, K., Khandelwal, U., Levy, O., Manning, C. (2019) [What does BERT look at? An analysis of BERT’s attention](https://arxiv.org/pdf/1906.04341.pdf). arXiv preprint arXiv:1906.04341
 
-<a name="ref13">[13]</a> Jiao, X., Yin, Y., Shang, L., Jiang, X., Chen, X., Li, L., Wang, F., Liu, Q. (2019) TinyBERT: Distilling BERT for Natural Language Understanding. arXiv preprint arXiv:1909.10351v4
+<a name="ref13">[13]</a> Jiao, X., Yin, Y., Shang, L., Jiang, X., Chen, X., Li, L., Wang, F., Liu, Q. (2019) [TinyBERT: Distilling BERT for Natural Language Understanding](https://arxiv.org/pdf/1909.10351.pdf). arXiv preprint arXiv:1909.10351v4
