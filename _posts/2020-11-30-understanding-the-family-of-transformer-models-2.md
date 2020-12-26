@@ -173,4 +173,4 @@ To study the impact of Longformer on sequence-to-sequence task, a variant, Longf
 
 <a name="ref4">[4]</a> Sukhbaatar, S., Grave, E., Bojanowski, P., and Joulin, A. (2019) [Adaptive Attention Span in Transformers](https://arxiv.org/pdf/1905.07799.pdf). arXiv preprint arXiv:1905.07799
 
-<a name="ref5">[5]</a> Beltagy, I., Peters, M. E., and Cohan, A. (2017) [Longformer: The Long-Document Transformer](https://arxiv.org/pdf/2004.05150.pdf). arXiv preprint arXiv:2004.05150
+<a name="ref5">[5]</a> Beltagy, I., Peters, M. E., and Cohan, A. (2020) [Longformer: The Long-Document Transformer](https://arxiv.org/pdf/2004.05150.pdf). arXiv preprint arXiv:2004.05150
