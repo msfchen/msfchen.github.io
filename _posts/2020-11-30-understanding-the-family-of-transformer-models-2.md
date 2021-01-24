@@ -225,7 +225,7 @@ OpenKP is a structured dataset that contains websites, including the hierarchica
 
 ## **Content-Based Sparse Attention**
 
-Position-based sparse attention applies fixed sparse pattern to all instances, which cannot avoid allocating computation and memory to attend to unrelated tokens covered by the pattern and can miss attending to related tokens not covered by the pattern. To address these problems, content-based sparse attention methods have been developed to dynamically approximate full attention. Two of these methods are reviewed here.
+Position-based sparse attention applies fixed sparse pattern to all instances, which cannot avoid allocating computation and memory to attend to unrelated tokens covered by the pattern and can miss attending to related tokens not covered by the pattern. To address these problems, content-based sparse attention methods have been developed to dynamically attend to the most related tokens in long sequences. Two of these methods are reviewed here: Reformer and Routing Transformer. Both approaches can be viewed as to approximate Maximum Inner Product Search in the context of dot product attention.
 
 ### **Reformer**
 
@@ -255,6 +255,20 @@ Reformer can fit large models, up to 20-layer, on a single core and train fast o
 
 ### **Routing Transformer**
 
+In the Reformer, the randomly initialized hyper-planes for the hash functions are not learnable but fixed throughout. Roy et al., (2020)<sup>[\[11\]](#ref11)</sup> introduce Routing Transformer that relies on k-means clustering method to train the centroids in query/key space and only allows keys in the same cluster of a query to be attended to by the query. This variant of content-based sparse attention reduces memory and computational complexity from $$O(n^2d)$$ to $$O(n^{1.5}d)$$.
+
+The model clusters both keys $$K$$ and queries $$Q$$ using mini-batch k-means clustering on the same set of centroid vectors $$\psi=(\mu_1,...,\mu_k)\in\mathrm{\mathbb{R}}^{k\times d}$$ that are shared across all input sequences and learned online along with the rest of the parameters. Cluster membership for a query $$Q_i$$ and a key $$K_j$$ are determined by their corresponding nearest centroids $$\mu(Q_i)\in\psi$$ and $$\mu(K_j)\in\psi$$, respectively. The sparse causal attention is then defined as $$X_i^{\prime}=\sum\limits_{j:K_i\in\mu(Q_i),j\lt i}A_{ij}V_j$$ where $$A_{ij}$$ is the attention matrix between $$Q_i$$ and $$K_j$$, and $$V_j$$ is the value at position $$j$$. It can be shown that the nearest neighbor search problem is equivalent to the maximum inner product search problem when the norm of every $$Q_i$$ and $$K_j$$ is constant. In this study, queries and keys are normalized by Layer Normalization with the scale and bias terms disabled; then, layer-normalized keys and queries are used for computing the dot product attention. Performing k-means algorithm on unit vectors is equivalent to performing spherical k-means algorithm on the unit ball. Because the attention is routed via spherical k-means clustering, the model is named *Routing Transformer*. The figure below compares the routing, strided, and local attention. The rows represent $$Q_i$$; the columns represent the $$K_j$$; and the colored cells represent attended ($$Q_i$$, $$K_j$$) pair. Different colors of each row and column in routing attention represent different cluster membership.
+<p align="center"><img src="../../../assets/images/routingTransformer.png"></p>
+The complexity of comparing $$n$$ routing vectors to all $$k$$ centroids in a space of size $$d$$ is $$O(nkd)$$. The complexity of dot product between $$n$$ quries and $$n/k$$ keys, assuming balanced clusters, is $$O(n^2d/k)$$. The optimal combination of the two is having them equal; thus, the optimal choice of $$k$$ is $$\sqrt{n}$$ and the corresponding complexity is $$O(n^{1.5}d)$$.
+
+To infer balanced routing patterns, the sets of positions $$S_i$$ attended to by the $$Q_i$$ is defined to be equal size of roughly $$n/k\sim\sqrt{n}$$. For every centroid $$\mu_i$$, the tokens are sorted by their distance to $$\mu_i$$ and cluster memebership is determined by the top-k. The sorting adds an additional $$O(n\log{n})$$ cost, which is significantly smaller than $$O(n^{1.5}d)$$, especially at larger $$n$$. This top-k approach guarantees that all clusters have the same size; however, it may result in multiple cluster memberships for a token, which can cause problem in causal attention. Thus, keys and queries are shared in causal langauge modeling.
+
+During training, each cluster centroid $$\mu$$ is updated by an exponentially moving average of all the keys and queries assigned to it: $$\mu\leftarrow\lambda\mu+\frac{\displaystyle (1-\mu)}{\displaystyle 2}\sum\limits_{i:\mu(Q_i)=\mu}Q_i+\frac{\displaystyle (1-\mu)}{\displaystyle 2}\sum\limits_{j:\mu(K_j)=\mu}K_j$$, where $$\lambda$$ is a decay parameter usually set to 0.999.
+
+Routing Transformer achieved new state-of-the-art performance on word-level language modeling on Wikitext-103 dataset, autoregressive image generation on ImageNet-64 dataset, and long text language modeling on PG-19 dataset. In all the experiments except the one using PG-19 dataset, half the attention heads do local attention and the other half does routing attention. Ablation studies on image generation task on CIFAR-10 dataset show that pure routing attention, meaning all layers contain routing layer and all attention heads do routing attention,  performs worse than models with only half heads doing routing attention, the other half doing local attention, and only the last several layers doing routing layers. The difference in attention patterns between local and routing attention is evaluated by computing the Jensen-Shannon divergence between the two kinds of attention distributions for a random subset of
+heads in the network on the Wikitext-103 dataset over the entire sequence length of 4096. The results show that the attention distribution inferred by the routing attention is highly
+non-local in nature and different heads specialize in attending to very different parts of the input. The authors hypothesize that the Routing Transformer combines building local representations over several layers with enforcing global consistency for every token.
+
 ## **Generalized Attention**
 
 ### **Performer**
@@ -270,6 +284,7 @@ Reformer can fit large models, up to 20-layer, on a single core and train fast o
 - [Longformer](https://github.com/allenai/longformer)
 - [Extended Transformer Construction (ETC)](https://github.com/google-research/google-research/tree/master/etcmodel)
 - [Reformer](https://github.com/google/trax/tree/master/trax/models/reformer)
+- [Routing Transformer](https://github.com/google-research/google-research/tree/master/routing_transformer)
 
 ## **References**
 
@@ -292,3 +307,5 @@ Reformer can fit large models, up to 20-layer, on a single core and train fast o
 <a name="ref9">[9]</a> Ainslie, J., Ontanon, S., Alberti, C., Cvicek, V., Fisher, Z., Pham, P., Ravula, A., Sanghai, S., Wang, Q., Yang, L. (2020) [ETC: Encoding Long and Structured Inputs in Transformers](https://www.aclweb.org/anthology/2020.emnlp-main.19.pdf). In: Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), 268-284.
 
 <a name="ref10">[10]</a> Kitaev, N., Kaiser, L., Levskaya, A. (2020) [Reformer: The Efficient Transformer](https://arxiv.org/pdf/2001.04451.pdf). arXiv preprint arXiv:2001.04451
+
+<a name="ref11">[11]</a> Roy, A., Saffar, M., Vaswani, A., Grangier, D. (2020) [Efficient Content-Based Sparse Attention with Routing Transformers](https://arxiv.org/pdf/2003.05997.pdf) arXiv preprint arXiv:2003.05997
