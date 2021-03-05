@@ -13,6 +13,7 @@ Language understanding and language generation are inherently sequential process
         - [GPT](#gpt)
         - [GPT-2](#gpt-2)
         - [GPT-3](#gpt-3)
+        - [Contextual Calibration of Few-Shot Learning](#contextual-calibration-of-few-shot-learning)
     - [Masked Language Models](#masked-language-models)
         - [BERT](#bert)
         - [RoBERTa](#roberta)
@@ -103,9 +104,17 @@ The GPT-3 still performed worse, by a large margin in some cases, than fine-tune
 
 Few-shot settings of the GTP-3 also demonstrated some abilities in many synthetic and qualitative tasks, including simple arithmetic operations on integers with 3 or less digits, character manipulation and word unscrambling tasks (cycle letters in words, anagrams of all but first and last/last 2 characters, random insertion in word, reversed words), SAT Analogies (multiple choice questions from the college entrance exam for selecting the same type of word pair relationship), correcting English grammar, learning and using novel words. The GPT-3 can generate samples of news articles which human evaluators have difficult distinguishing from articles written by humans.
 
+#### **Contextual Calibration of Few-Shot Learning**
+
+Although GPT-3 has displayed competitive or even state-of-the-art performance in few-shot learning on a wide range of tasks<sup>[\[11\]](#ref11)</sup>, Zhao et al., 2021<sup>[\[20\]](#ref20)</sup> have shown that the performance of few-shot learning in GPT-3 is very unstable on some text classification, fact retrieval, and information extraction tasks. They show that GPT-3's accuracy depends highly on the prompt format, where a prompt contains three components: a format, a set of training examples, and a permutation (ordering) of those examples. The accuracy also depends highly on both the selection and the ordering of training examples and the variance of accuracy persists even with more training examples or larger models. Furthermore, they show that the variances are caused by three types biases: (1) majority label bias, where more frequent label in the prompt is predicted more, (2) recency bias, where labels near the end of the prompt is predicted more, and (3) common token bias, where more frequent tokens in the pre-training dataset are predicted more.
+
+To correct the biases, Zhao et al., 2021<sup>[\[20\]](#ref20)</sup> introduce the contextual calibration procedure that estimates the model's bias towards certain answers by feeding in a content-free input, such as "N/A", assuming that content-free inputs should give uniform probabilities to all answers. The actual context-dependent output probability from content-free input, denoted as $$\mathrm{\hat p}_{cf}$$, is an average of those from "N/A", "\[MASK\]", and empty string. Then, a weight matrix $$\mathrm{\mathbf{W}}$$ is set as $$\mathrm{\mathbf{W}}=\mathrm{diag}(\mathrm{\hat p}_{cf})^{-1}$$. The calibrated probability is defined as $$\mathrm{\mathbf{W}}\mathrm{\hat p}+\mathrm{b}$$, where $$\mathrm{\hat p}$$ is the original probability and $$\mathrm{b}$$ is set to all-zero vector. This contextual calibration procedure is data-free and adds trivial amounts of computational overhead.
+
+The experimental results of the contextual calibration show that it dramatically improves GPT-3’s average and worst-case accuracy, by up to 30.0% absolute; it sometimes allows GPT-3 2.7B to outperform the GPT-3 175B baseline—by up to 19.3%; it reduces the variance considerably in a majority of cases; and it also improves the mean accuracy and reduces variance for most tasks in GPT-2. However, contextual calibration does not eliminate the need to engineer prompts.
+
 ### **Masked Language Models**
 
-In addition to the unidirectional generative approach, as applied in building the GPT models, language models can also be built using bidirectional masked approach, where some tokens from the input are randomly masked and the objective is to predict the original token of the masked position based on its context on both sides. The BERT (**B**idirectional **E**ncoder **R**epresentations from **T**ransformers) subfamily of models are masked language models based on the encoder portion of the transformer model.
+In addition to the unidirectional generative approach, as applied in building the GPT models, language models can also be built using bidirectional masked approach, where some tokens from the input are randomly masked and the objective is to predict the original token of the masked position based on its context on both sides. The BERT (**B**idirectional **E**ncoder **R**epresentations from **T**ransformers) subfamily of models are masked language models based on the encoder portion of the transformer model. 
 
 #### **BERT**
 
@@ -195,6 +204,7 @@ BART and T5 use slightly different training objective for masked spans in the in
 - [Transformer-XL](https://github.com/kimiyoung/transformer-xl)
 - [T5](https://github.com/google-research/text-to-text-transfer-transformer)
 - [BART](https://github.com/pytorch/fairseq/tree/master/examples/bart) or [BART](https://huggingface.co/transformers/model_doc/bart.html)
+- [Calibration of Few-Shot Learning](https://github.com/tonyzhaozh/few-shot-learning)
 
 ## **References**
 
@@ -234,3 +244,5 @@ translation system: Bridging the gap between human and machine translation](http
 <a name="ref18">[18]</a> Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., Zhou, Y., Li, W., and Liu, P. (2020) [Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer](https://arxiv.org/pdf/1910.10683.pdf). Journal of Machine Learning Research 21:1-67
 
 <a name="ref19">[19]</a> Lewis, M., Liu, Y., Goyal, N., Ghazvininejad, M., Mohamed, A., Levy, O. (2020) [BART: Denoising sequence-to-sequence pretraining for natural language generation, translation, and comprehension](https://www.aclweb.org/anthology/2020.acl-main.703.pdf). In: Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics, 7871–7880.
+
+<a name="ref20">[20]</a> Zhao, T., Wallace, E., Feng, S., Klein, D., Singh, S. (2021) [Calibrate Before Use: Improving Few-Shot Performance of Language Models](https://arxiv.org/pdf/2102.09690.pdf). arXiv preprint arXiv:2102.09690
