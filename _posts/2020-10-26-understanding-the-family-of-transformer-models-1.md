@@ -22,6 +22,8 @@ Language understanding and language generation are inherently sequential process
     - [Denoising Language Models](#denoising-language-models)
         - [T5](#t5)
         - [BART](#bart)
+    - [Retrieval-Augmented Language Models](#retrieval-augmented-language-models)
+        - [REALM](#realm)
 - [Codes](#codes)
 - [References](#references)
 
@@ -55,7 +57,7 @@ Using a 4-layer transformer with $$d_{model}=1024$$ for English constituency par
 
 ## **Language Models Based on the Transformer**
 
-Because language models can be trained on unlabeled text data and large amount of text data are readily available, general-purpose language models using the transformer architecture have been built with ever-increasing capacity. The learned language knowledge in such large-scale models can then be transfered to perform a wide variety of tasks by fine-tuning with small amount of task-specific labeled data. These models can be categorized into four groups, based on their language modeling approaches.
+Because language models can be trained on unlabeled text data and large amount of text data are readily available, general-purpose language models using the transformer architecture have been built with ever-increasing capacity. The learned language knowledge in such large-scale models can then be transfered to perform a wide variety of tasks by fine-tuning with small amount of task-specific labeled data. These models can be categorized into five groups, based on their language modeling approaches.
 
 | Type of LM | Objective Function | Definitions |
 | :----: | :----: | ---- |
@@ -63,6 +65,7 @@ Because language models can be trained on unlabeled text data and large amount o
 | Masked Autoencoding (AE) | $$\underset{\theta}{\max}\;\log\mathit{p}_{\theta}(\mathrm{\mathbf{\bar x}}\|\mathrm{\mathbf{\hat x}})\approx \sum\limits_{t=1}^{T} m_{t}\log\mathit{p}_{\theta}(x_{t}\|\mathrm{\mathbf{\hat x}})$$ | 1. $$\mathrm{\mathbf{\hat x}}=\mathrm{\mathbf{x}}$$ with 15% of tokens replaced by [MASK].<br>2. $$\mathrm{\mathbf{\bar x}}=$$ masked tokens<br>3. $$m_{t}=1$$ when $$x_{t}$$ is masked, 0 otherwise. |
 | Permutation Autoregressive | $$\underset{\theta}{\max}\;\mathbb{E}_{\mathrm{\mathbf{z}}\sim \mathcal{Z}_{T}}\bigg[\sum\limits_{t=1}^{T}\log\mathit{p}_{\theta}(x_{z_{t}}\|\mathrm{\mathbf{x}}_{\mathrm{\mathbf{z}}_{\lt t}})\bigg]$$ | 1. $$\mathcal{Z}_{T}=$$ the set of all possible, $$T!$$, permutations of the index sequence [1, 2,..., T].<br>2. a permutation $$\mathrm{\mathbf{z}}\in \mathcal{Z}_{T}$$.<br>3. $$z_{t}=$$ the t-th element of $$\mathrm{\mathbf{z}}$$.<br>4. $$\theta$$ is shared across all permutations. |
 | Denoising Autoencoding | $$\underset{\theta}{\max}\;\log\mathit{p}_{\theta}(\mathrm{\mathbf{y}}\|\mathrm{\mathbf{x}})=\sum\limits_{t=1}^{T_{y}}\log\mathit{p}_{\theta}(y_{t}\|\mathrm{\mathbf{x}},\mathrm{\mathbf{y_{\lt t}}})$$ | 1. $$\mathrm{\mathbf{x}}=[x_{1},...,x_{T_{x}}]$$ is the noisy source sequence.<br>2. $$\mathrm{\mathbf{y}}=[y_{1},...,y_{T_{y}}]$$ is the corresponding clean sequence.<br>3. sequence-to-sequence on encoder-decoder architecture. |
+| Retrieval-Augmented LM | $$\underset{\theta,\phi}{\max}\;\log\mathit{p}_{\theta,\phi}(\mathrm{\mathbf{y}}\|\mathrm{\mathbf{x}})=\log(\sum\limits_{z\in\mathcal{Z}}\mathit{p}_{\phi}(\mathrm{\mathbf{y}}\|z,\mathrm{\mathbf{x}})\mathit{p}_{\theta}(z\|\mathrm{\mathbf{x}}))$$ | 1. $$\mathrm{\mathbf{x}},\mathrm{\mathbf{y}},\theta,\phi$$ are input, output, parameters of Knowledge Retriever, and parameters of Knowledge-Augmented Encoder, respectively.<br>2. $$z$$ is a document in a knowledge corpus $$\mathcal{Z}$$. |
 
 Lewis et al., 2020<sup>[\[19\]](#ref19)</sup> provided a succinct illustration below to compare BERT, a masked LM, GPT, a standard autoregressive LM, and BART, a denoising LM.
 <p align="center"><img src="../../../assets/images/LM.png"></p>
@@ -192,6 +195,54 @@ On classification tasks, SQuAD and GLUE tasks, BART performs similarly to RoBERT
 
 BART and T5 use slightly different training objective for masked spans in the inputs: BART reconstructs the complete input, but T5 only predicts the sequence of corrupted tokens. This may give BART some advantage on text generation task. BART achieves higher performance than T5 with similar model sizes, particularly on summarization tasks.
 
+### **Retrieval-Augmented Language Models**
+
+In all the models discussed above, the learned knowledge is stored implicitly in the parameters of the models. Alternatively, knowledge from a large corpus can be explicitly retrieved by a retriever component of a language model during pre-training, fine-tuning, and inference.
+
+#### **REALM**
+
+Guu et al., 2020<sup>[\[21\]](#ref21)</sup> introduce the first REALM (REtrieval-Augmented Language Model) that has a knowledge-retriever jointly pre-trained with a knowledge-augmented encoder. The overall idea of REALM is illustrated in the figure below. For pre-training, the task is masked language modeling, where an input sentence $$x$$ from a pre-training corpus $$\mathcal{X}$$ contains some masked tokens and the output $$y$$ contains the tokens predicted for the masked positions by the model. For fine-tuning, the task is Open-QA, where $$x$$ is a question and $$y$$ is the answer.
+<p align="center"><img src="../../../assets/images/REALM.png"></p>
+REALM is composed of two components: (1) the neural knowledge retriever that models $$p(z|x)$$, the probability of retrieving document $$z$$ from a knowledge corpus $$\mathcal{Z}$$, and (2) the knowledge-augmented encoder that models $$p(y|z,x)$$, the probability of generating $$y$$ conditioned on both the retrieved $$z$$ and the original input $$x$$. To obtain the overall likelihood of generating $$y$$, the $$z$$ is treated as a latent variable and marginalized over, resulting in
+
+$$p(y|x)=\sum\limits_{z\in\mathcal{Z}}p(y|z,x)p(z|x).$$
+
+The retriever is defined as the softmax over all relevance scores $$f(x,z)$$ that is the inner product of the embeddings of $$x$$ and $$z$$.
+
+$$p(z|x)=\frac{\exp f(x,z)}{\sum_{z'}\exp f(x,z')},$$
+
+$$f(x,z)=\mathrm{Embed}_{\mathrm{input}}(x)^\top\mathrm{Embed}_{\mathrm{doc}}(z).$$
+
+BERT is used to implement the embedding functions on inputs from joining spans of wordpiece tokens, including the prefix token [CLS] for pooled representation of the sequence and the separator token [SEP]. The output of BERT is linearly projected by a matrix $$\mathrm{W}$$ to reduce the dimensionality of the vector.
+
+$$\mathrm{Embed}_{\mathrm{input}}(x)=\mathrm{W}_{\mathrm{input}}\mathrm{BERT}_{\mathrm{CLS}}(\mathrm{join}_{\mathrm{BERT}}(x))$$
+
+$$\mathrm{Embed}_{\mathrm{doc}}(z)=\mathrm{W}_{\mathrm{doc}}\mathrm{BERT}_{\mathrm{CLS}}(\mathrm{join}_{\mathrm{BERT}}(z_{\mathrm{title}},z_{\mathrm{body}}))$$
+
+, where $$\mathrm{join}_{\mathrm{BERT}}(x)=$$[CLS]$$x$$[SEP] and $$\mathrm{join}_{\mathrm{BERT}}(x_1,x_2)=$$[CLS]$$x_1$$[SEP]$$x_2$$[SEP]. $$\theta$$ is used to denote all parameters, including the Transformer and the projection matrices, of the retriever.
+
+The encoder behaves differently for pre-training and fine-tuning. For pre-training, the masked language modeling task is to predict the original tokens at the masked positions.
+
+$$p(y|z,x)=\prod\limits_{j=1}^{J_x}p(y_j|z,x)$$
+
+$$p(y_j|z,x)\propto\exp(w_j^{\top}\mathrm{BERT}_{\mathrm{MASK}(j)}(\mathrm{join}_{\mathrm{BERT}}(x,z_{\mathrm{body}})))$$
+
+, where $$J_x$$ is the total number of [MASK] tokens in $$x$$, $$w_j$$ is a learned word embedding for token $$y_j$$, and $$\mathrm{BERT}_{\mathrm{MASK}(j)}$$ denotes the Transformer output vector corresponding to the $$j^{th}$$ masked token. For Open-QA fine-tuning, it is assumed that the answer string $$y$$ can be found as a contiguous sequence of tokens in a document $$z$$ and $$S(z,y)$$ is the set of spans matching $$y$$ in $$z$$. Then,
+
+$$p(y|z,x)\propto\sum\limits_{s\in S(z,y)}\exp(\mathrm{MLP}([h_{\mathrm{START(s)}};h_{\mathrm{END(s)}}]))$$
+
+$$h_{\mathrm{START(s)}}=\mathrm{BERT}_{\mathrm{START(s)}}(\mathrm{join}_{\mathrm{BERT}}(x,z_{\mathrm{body}}))$$
+
+$$h_{\mathrm{END(s)}}=\mathrm{BERT}_{\mathrm{END(s)}}(\mathrm{join}_{\mathrm{BERT}}(x,z_{\mathrm{body}}))$$
+
+, where $$\mathrm{MLP}$$ denotes a feed-forward neural network and $$\mathrm{BERT}_{\mathrm{START(s)}}$$ and $$\mathrm{BERT}_{\mathrm{END(s)}}$$ denote the Transformer output vectors corresponding to the start and end tokens of span $$s$$, respectively. $$\phi$$ is used to denote all parameters of the knowledge-augmented encoder.
+
+For both pre-training and fine-tuning, the model is trained to maximize the log-likelihood $$\log p(y$$\|$$x)$$ of the correct output $$y$$. Both the retriever and the encoder are differentiable and the model parameters $$\theta$$ and $$\phi$$ can be optimized using stochastic gradient descent on the gradient of $$\log p(y$$\|$$x)$$ with respect to $$\theta$$ and $$\phi$$. To reduce the cost of retrieval and marginalization over all documents, it is approximated by only using the top $$k$$ documents in descending order of $$p(z$$\|$$x)$$. To efficiently find the top $$k$$ documents, the Maximum Inner Product Search (MIPS) algorithm is used, because the order of the relevance score $$f(x,z)=\mathrm{Embed}_{\mathrm{input}}(x)^\top\mathrm{Embed}_{\mathrm{doc}}(z)$$ is equivalent to the order of $$p(z$$\|$$x)$$. To use MIPS, an efficient search index over pre-computed embeddings for every document must be constructed. However, during training, parameter updates on $$\theta$$ will alter the embeddings and the index, making the search index "stale". To mitigate the problem, the index is refreshed by asynchronously re-embedding and re-indexing all documents every several hundred training steps. On the other hand, the $$p(z$$\|$$x)$$ and its gradient are recomputed using fresh $$\theta$$ for the top $$k$$ documents after retrieval in every training step. The asynchronous MIPS refresh is implemented by two parallel running jobs: a primary trainer job for gradient updates and a secondary index builder job for re-embedding and re-indexing. The asynchronous refresh is used only for pre-training; for fine-tuning, the MIPS index is built only once using the pre-trained $$\theta$$ and the $$\mathrm{Embed}_{\mathrm{doc}}$$ is not updated, while the query side $$\mathrm{Embed}_{\mathrm{input}}$$ is still fine-tuned. What the retriever learns during the pre-training is that a document $$z$$ receives a positive update whenever it performs better than expected from random sampling.
+
+Four inductive biases in pre-training are shown to be helpful to the performance of the retriever: (1) salient spans such as named entities and dates within a sentence are selected for masking, (2) an empty null document is added to the top $$k$$ retrieved documents for appropriate weight to be assigned to the case when no retrieval is necessary, (3) trivial retrieval candidates, meaning documents containing the exact sentence of a masked sentence, are excluded during pre-training, (4) $$\mathrm{Embed}_{\mathrm{input}}$$ and $$\mathrm{Embed}_{\mathrm{doc}}$$ are warm-started using Inverse Cloze Task (ICT) where, given a sentence, the model is trained to retrieve the document where the sentence came from. The encoder is warm-started with pre-trained BERT-based models.
+
+Open-QA task is chosen to evaluate the REALM, because the inputs do not contain hinting context and the questions reflect more realistic information-seeking needs. The evaluation is based on exact match with reference answer. Three Open-QA benchmark datasets are used: NaturalQuestions-Open, WebQuestions, and CuratedTrec. The results of REALM are compared with those from several heuristic retrieval-based approaches, ORQA, a learnable retrieval-based approach, and T5 generation-based approaches. The documents of knowledge corpus are split into chunks of up to 288 BERT wordpieces, resulting in over 13 million retrieval candidates. REALM outperforms all previous approaches by a significant margin. The largest T5-11B model outperforms the previous best Open-QA system. But REALM outperforms the largest T5-11B model while being 30 times smaller. The improvement of REALM over ORQA is purely due to better pre-training methods. Both the encoder and retriever benefit from REALM training separately, but the best result requires both components acting in unison. REALM is able to retrieve some documents with a related fact to fill in the masked word in the MLM pre-training task. REALM also offers a set of model-centric unsupervised alignments between text in the pre-training corpus $$\mathcal{X}$$ and knowledge corpus $$\mathcal{Z}$$.
+
 ## **Codes**
 
 - [Transformers](https://github.com/huggingface/transformers) or [Transformers](https://github.com/tensorflow/tensor2tensor)
@@ -246,3 +297,5 @@ translation system: Bridging the gap between human and machine translation](http
 <a name="ref19">[19]</a> Lewis, M., Liu, Y., Goyal, N., Ghazvininejad, M., Mohamed, A., Levy, O. (2020) [BART: Denoising sequence-to-sequence pretraining for natural language generation, translation, and comprehension](https://www.aclweb.org/anthology/2020.acl-main.703.pdf). In: Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics, 7871–7880.
 
 <a name="ref20">[20]</a> Zhao, T., Wallace, E., Feng, S., Klein, D., Singh, S. (2021) [Calibrate Before Use: Improving Few-Shot Performance of Language Models](https://arxiv.org/pdf/2102.09690.pdf). arXiv preprint arXiv:2102.09690
+
+<a name="ref21">[21]</a> Guu, K., Lee, K., Tung, Z., Pasupat, P., Chang, M. (2020) [REALM: Retrieval-Augmented Language Model Pre-Training](https://arxiv.org/pdf/2002.08909.pdf). arXiv preprint arXiv:2002.08909
