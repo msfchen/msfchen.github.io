@@ -17,6 +17,9 @@ Language understanding and language generation are inherently sequential process
     - [Masked Language Models](#masked-language-models)
         - [BERT](#bert)
         - [RoBERTa](#roberta)
+        - [Extensions to BERT](#extensions-to-bert)
+            - [ALBERT](#albert)
+            - [ELECTRA](#electra)
     - [Permutation Language Models](#permutation-language-models)
         - [XLNet](#xlnet)
     - [Denoising Language Models](#denoising-language-models)
@@ -65,7 +68,7 @@ Because language models can be trained on unlabeled text data and large amount o
 | Masked Autoencoding (AE) | $$\underset{\theta}{\max}\;\log\mathit{p}_{\theta}(\mathrm{\mathbf{\bar x}}\|\mathrm{\mathbf{\hat x}})\approx \sum\limits_{t=1}^{T} m_{t}\log\mathit{p}_{\theta}(x_{t}\|\mathrm{\mathbf{\hat x}})$$ | 1. $$\mathrm{\mathbf{\hat x}}=\mathrm{\mathbf{x}}$$ with 15% of tokens replaced by [MASK].<br>2. $$\mathrm{\mathbf{\bar x}}=$$ masked tokens<br>3. $$m_{t}=1$$ when $$x_{t}$$ is masked, 0 otherwise. |
 | Permutation Autoregressive | $$\underset{\theta}{\max}\;\mathbb{E}_{\mathrm{\mathbf{z}}\sim \mathcal{Z}_{T}}\bigg[\sum\limits_{t=1}^{T}\log\mathit{p}_{\theta}(x_{z_{t}}\|\mathrm{\mathbf{x}}_{\mathrm{\mathbf{z}}_{\lt t}})\bigg]$$ | 1. $$\mathcal{Z}_{T}=$$ the set of all possible, $$T!$$, permutations of the index sequence [1, 2,..., T].<br>2. a permutation $$\mathrm{\mathbf{z}}\in \mathcal{Z}_{T}$$.<br>3. $$z_{t}=$$ the t-th element of $$\mathrm{\mathbf{z}}$$.<br>4. $$\theta$$ is shared across all permutations. |
 | Denoising Autoencoding | $$\underset{\theta}{\max}\;\log\mathit{p}_{\theta}(\mathrm{\mathbf{y}}\|\mathrm{\mathbf{x}})=\sum\limits_{t=1}^{T_{y}}\log\mathit{p}_{\theta}(y_{t}\|\mathrm{\mathbf{x}},\mathrm{\mathbf{y_{\lt t}}})$$ | 1. $$\mathrm{\mathbf{x}}=[x_{1},...,x_{T_{x}}]$$ is the noisy source sequence.<br>2. $$\mathrm{\mathbf{y}}=[y_{1},...,y_{T_{y}}]$$ is the corresponding clean sequence.<br>3. sequence-to-sequence on encoder-decoder architecture. |
-| Retrieval-Augmented LM | $$\underset{\theta,\phi}{\max}\;\log\mathit{p}_{\theta,\phi}(\mathrm{\mathbf{y}}\|\mathrm{\mathbf{x}})=\log(\sum\limits_{z\in\mathcal{Z}}\mathit{p}_{\phi}(\mathrm{\mathbf{y}}\|z,\mathrm{\mathbf{x}})\mathit{p}_{\theta}(z\|\mathrm{\mathbf{x}}))$$ | 1. $$\mathrm{\mathbf{x}},\mathrm{\mathbf{y}},\theta,\phi$$ are input, output, parameters of Knowledge Retriever, and parameters of Knowledge-Augmented Encoder, respectively.<br>2. $$z$$ is a document in a knowledge corpus $$\mathcal{Z}$$. |
+| Retrieval-Augmented Autoencoding | $$\underset{\theta,\phi}{\max}\;\log\mathit{p}_{\theta,\phi}(\mathrm{\mathbf{y}}\|\mathrm{\mathbf{x}})=\log(\sum\limits_{z\in\mathcal{Z}}\mathit{p}_{\phi}(\mathrm{\mathbf{y}}\|z,\mathrm{\mathbf{x}})\mathit{p}_{\theta}(z\|\mathrm{\mathbf{x}}))$$ | 1. $$\mathrm{\mathbf{x}},\mathrm{\mathbf{y}},\theta,\phi$$ are input, output, parameters of Knowledge Retriever, and parameters of Knowledge-Augmented Encoder, respectively.<br>2. $$z$$ is a document in a knowledge corpus $$\mathcal{Z}$$. |
 
 Lewis et al., 2020<sup>[\[19\]](#ref19)</sup> provided a succinct illustration below to compare BERT, a masked LM, GPT, a standard autoregressive LM, and BART, a denoising LM.
 <p align="center"><img src="../../../assets/images/LM.png"></p>
@@ -137,6 +140,56 @@ The pre-training datasets include BooksCorpus (800M words) and English Wikipedia
 Liu et al., 2019<sup>[\[14\]](#ref14)</sup> investigated the effect of larger training dataset size and alternative training hyperparameters of the BERT, without any change to the model architecture. The new training configuration of the BERT is called **R**obustly **o**ptimized **BERT** **a**pproach (**RoBERTa**). The new training dataset is collected from more diverse sources, with total size of 160GB, 10 times of the size used by BERT. The new batch size is 8K, more than 30 times of the batch size of BERT. The training steps are 0.5M and 1M for RoBERTa and BERT, respectively; thus, total instances of training are 4B and 256M for RoBERTa and BERT, respectively. Larger training dataset, larger batch size, and longer training have been shown to be substantially beneficial; but other hyperparameter changes included in the new configuration have been shown to have little benefit, including larger BPE vocabulary size, dynamic token masking, training on longer sequence, and removal of NSP pre-training task.
 
 RoBERTa achieved new state-of-the-art GLUE score of 88.5, far above the 80.5 by *BERT<sub>LARGE</sub>*. It also set new state-of-the-art results on two question answering tasks, RACE and SQuAD, with large margin over corresponding scores by *BERT<sub>LARGE</sub>*. These results showed that the original BERT model was significantly underfit.
+
+#### **Extensions to BERT**
+
+Numerous efforts have been made to reduce the computational cost of BERT and, at the same time, to improve its performance on downstream tasks. Two examples, ALBERT and ELECTRA, are reviewed here. ALBERT improves parameter efficiency and introduces sentence-order prediction to replace BERT's next sentence prediction. ELECTRA improves sample efficiency and introduces replaced token detection objective in a generator-discriminator pre-training scheme.
+
+##### **ALBERT**
+
+Lan et al., 2019<sup>[\[22\]](#ref22)</sup> introduced A Lite BERT (ALBERT) that drastically reduced the number of parameters of BERT by two techniques: (1) a factorized embedding parameterization, and (2) cross-layer parameter sharing. In addition, ALBERT improved the pre-training objective of BERT by modifying the definition of negative examples in the next sentence prediction task to become sentence-order prediction task.
+
+The factorized embedding parameterization is to allow the vocabulary embedding size $$E$$ to be different from the hidden layer size $$H$$, as opposed to $$E=H$$ in BERT, RoBERTa, and XLNet. If $$E=H$$, then increasing $$H$$ increases the size of the embedding matrix, $$V\times E$$, where $$V$$ is the vocabulary size and $$V$$=30,000 in this study, and easily results in billions of parameters. Also, token embedding and hidden-layer embedding are supposed to learn context-independent and context-dependent representations, respectively. It is desirable to have $$E\ll H$$. The decoupling reduces the embedding parameters from $$O(V\times H)$$ to $$O(V\times E+E\times H)$$. Ablation experiments show that $$E$$=128 appears to be the best.
+ALBERT shares parameters across layers on both feed-forward network and attention parameters. The number of parameters are 334M and 18M in BERT-large and ALBERT-large, respectively, with 24 layers and 1024 hidden-layer size. However, the downstream task performance is reduced after applying the two parameter reduction techniques.
+
+The next sentence prediction (NSP) task of BERT predicts whether the second segment of an input is the next segment of the first segment or not, in which the negative examples come from different documents. The effects of NSP is unreliable. The sentence-order prediction (SOP) task of ALBERT predicts whether a pair of segments are in correct order, in which the negative examples are from swapped contiguous segments. It is interesting that such a small change in the learning objective consistently improves performance for multi-sentence encoding downstream tasks, even after the parameter reduction techniques above. Also, removing dropout significantly improves both masked language modeling accuracy and downstream tasks performance.
+
+ALBERT significantly outperforms the then state-of-the-art models RoBERTa and DCMN+ on benchmarks GLUE, SQuAD, and RACE, respectively.
+
+##### **ELECTRA**
+
+Clark et al., 2020<sup>[\[23\]](#ref23)</sup> took another approach ELECTRA (Efficiently Learning an Encoder that Classifies Token Replacements Accurately) to improve pre-training efficiency and downstream task performance of BERT. It addresses two problems of BERT: (1) the artificial token [MASK] used in pre-training is not used in fine-tuning, and (2) only a small subset (15%) of input tokens are used (masked) for pre-training. The first, also known as mismatch, problem, is solved by replacing masked tokens with plausible alternatives sampled from a small generator network. The second problem is solved by training a discriminative model that predicts whether each token in the corrupted input was replaced by a generator sample or not. The idea is named replaced token detection pre-training, as illustrated in the figure below. By learning from all input positions, ELECTRA trains much faster than BERT.
+<p align="center"><img src="../../../assets/images/ELECTRA.png"></p>
+
+Both the generator $$G$$ and the discriminator $$D$$ consist of an encoder that maps a sequence of input tokens $$\mathbf{x}=[x_1,...,x_n]$$ into a sequence of contextualized vector representations $$h(\mathbf{x})=[h_1,...,h_n]$$. For a given masked position $$t$$, the probability of generating the token $$x_t$$ with a softmax layer at the generator output is
+
+$$p_G(x_t|\mathbf{x})=\frac{\exp(e(x_t)^{\top}h_G(\mathbf{x})_t)}{\sum_{x'}\exp(e(x')^{\top}h_G(\mathbf{x})_t)}$$
+
+where $$e$$ denotes token embeddings. For a given position $$t$$, the discriminator predicts whether the tokens $$x_t$$ is from the real data rather than the generator distribution, with a sigmoid output layer:
+
+$$D(\mathbf{x},t)=\mathrm{sigmoid}(w^{\top}h_D(\mathbf{x})_t)$$
+
+The generator is trained to perform masked language modeling that first selects, from an input $$\mathbf{x}=[x_1,...,x_n]$$, a random set of positions $$\mathbf{m}=[m_1,...,m_k]$$ to mask out, where $$k=0.15n$$. Then, the selected tokens are replaced with [MASK] tokens, which is denoted as $$\mathbf{x}^{\mathrm{masked}}=\mathtt{REPLACE}$$($$\mathbf{x}$$,$$\mathbf{m}$$,[MASK]). Then, the generator learns to predict the original identities of the masked tokens. Then, a corrupted example $$\mathbf{x}^{\mathrm{corrupt}}$$ is created by replacing the masked-out tokens with generator samples. Finally, the discriminator is trained to predict which tokens in $$\mathbf{x}^{\mathrm{corrupt}}$$ match the original input $$\mathbf{x}$$. Model inputs are constructed according to
+
+$$m_i\sim\mathrm{unif}\{1,n\}$$ for $$i=1$$ to $$k \qquad\qquad \mathbf{x}^{\mathrm{masked}}=\mathtt{REPLACE}$$($$\mathbf{x}$$,$$\mathbf{m}$$,[MASK])
+
+$$\hat{x}_i\sim p_G(x_i$$\|$$\mathbf{x}^{\mathrm{masked}})$$ for $$i\in\mathbf{m} \qquad\qquad \mathbf{x}^{\mathrm{corrupt}}=\mathtt{REPLACE}$$($$\mathbf{x}$$,$$\mathbf{m}$$,$$\hat{\mathbf{x}}$$)
+
+and the loss functions are
+
+$$\mathcal{L}_{\mathrm{MLM}}(\mathbf{x},\theta_G)=\mathrm{\mathbb{E}}\bigg(\sum\limits_{i\in\mathbf{m}}-\log p_G(x_i|\mathbf{x}^{\mathrm{masked}})\bigg)$$
+
+$$\mathcal{L}_{\mathrm{Disc}}(\mathbf{x},\theta_D)=\mathrm{\mathbb{E}}\bigg(\sum\limits_{t=1}^n -\mathbb{1}(x_t^{\mathrm{corrupt}}=x_t)\log D(\mathbf{x}^{\mathrm{corrupt}},t)-\mathbb{1}(x_t^{\mathrm{corrupt}}\neq x_t)\log(1-D(\mathbf{x}^{\mathrm{corrupt}},t)) \bigg)$$
+
+The combined loss is minimized over a large corpus $$\mathcal{X}$$ of raw text.
+
+$$\underset{\theta_C,\theta_D}{\min}\;\sum\limits_{\mathbf{x}\in\mathcal{X}} \mathcal{L}_{\mathrm{MLM}}(\mathbf{x},\theta_G)+\lambda \mathcal{L}_{\mathrm{Disc}}(\mathbf{x},\theta_D)$$
+
+The expectations in the losses are approximated with a single sample. The discriminator loss cannot be back-propagated through the generator because of the sampling step. After pre-training, the generator is thrown out and only the discriminator is fine-tuned on downstream tasks.
+
+GLUE and SQuAD benchmarks are used for evaluation. For fine-tuning on GLUE and SQuAD, simple linear classifiers and the question-answering module from XLNet, respectively, are added on top of ELECTRA. Both the token embeddings and positional embeddings are shared between the generator and the discriminator, using the size of the discriminator's hidden states. The ELECTRA models work best with generators $$1/4\sim 1/2$$ the size of the discriminator, in terms of layer sizes (number of hidden units) while keeping the other hyperparameters constant. 
+
+ELECTRA-Large models are the same size as BERT-Large but are trained for much longer. ELECTRA-400K is trained for 400k steps, roughly $$1/4$$ the pre-training compute of RoBERTa. ELECTRA-1.75M is trained for 1.75M steps, similar compute to RoBERTa. ELECTRA outperforms XLNet and RoBERTa of the same size on GLUE and SQuAD benchmarks, but with less pre-training compute. ELECTRA is greatly benefitted from having a loss defined over all input tokens rather than just 15% of the tokens. A large amount of ELECTRA’s improvement can be attributed to learning from all tokens and a smaller amount can be attributed to alleviating the pre-train fine-tune mismatch. ELECTRA's pre-training objective is more compute-efficient and results in better performance on downstream tasks.
 
 ### **Permutation Language Models**
 
@@ -246,16 +299,18 @@ Open-QA task is chosen to evaluate the REALM, because the inputs do not contain 
 ## **Codes**
 
 - [Transformers](https://github.com/huggingface/transformers) or [Transformers](https://github.com/tensorflow/tensor2tensor)
+- [Transformer-XL](https://github.com/kimiyoung/transformer-xl)
 - [minGPT](https://github.com/karpathy/minGPT)
 - [GPT-2](https://github.com/openai/gpt-2)
 - [GPT-3](https://github.com/openai/gpt-3)
+- [Calibration of Few-Shot Learning](https://github.com/tonyzhaozh/few-shot-learning)
 - [BERT](https://github.com/google-research/bert)
 - [RoBERTa](https://github.com/pytorch/fairseq)
+- [ALBERT](https://github.com/google-research/ALBERT)
+- [ELECTRA](https://github.com/google-research/electra)
 - [XLNet](https://github.com/zihangdai/xlnet)
-- [Transformer-XL](https://github.com/kimiyoung/transformer-xl)
 - [T5](https://github.com/google-research/text-to-text-transfer-transformer)
 - [BART](https://github.com/pytorch/fairseq/tree/master/examples/bart) or [BART](https://huggingface.co/transformers/model_doc/bart.html)
-- [Calibration of Few-Shot Learning](https://github.com/tonyzhaozh/few-shot-learning)
 
 ## **References**
 
@@ -299,3 +354,7 @@ translation system: Bridging the gap between human and machine translation](http
 <a name="ref20">[20]</a> Zhao, T., Wallace, E., Feng, S., Klein, D., Singh, S. (2021) [Calibrate Before Use: Improving Few-Shot Performance of Language Models](https://arxiv.org/pdf/2102.09690.pdf). arXiv preprint arXiv:2102.09690
 
 <a name="ref21">[21]</a> Guu, K., Lee, K., Tung, Z., Pasupat, P., Chang, M. (2020) [REALM: Retrieval-Augmented Language Model Pre-Training](https://arxiv.org/pdf/2002.08909.pdf). arXiv preprint arXiv:2002.08909
+
+<a name="ref22">[22]</a> Lan, Z., Chen, M., Goodman, S., Gimpel, K., Sharma, P., Soricut, R. (2019) [ALBERT: A Lite BERT for Self-supervised Learning of Language Representations](https://arxiv.org/abs/1909.11942) arXiv preprint arXiv:1909.11942
+
+<a name="ref23">[23]</a> Clark, K., Luong, M., Le, Q., Manning, C. (2020) [ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators](https://arxiv.org/pdf/2003.10555.pdf) arXiv preprint arXiv:2003.10555
