@@ -382,7 +382,7 @@ $$p_{RAG-Sequence}(y|x)\approx\sum\limits_{z\in top-k(p(\cdot|x))}p_{\eta}(z|x)p
 
 The RAG-Token allows the generator to choose content from several documents when producing a token. The retriever retrieves the top K documents and then the generator produces a distribution for the next output token for each document before marginalizing. The process is repeated for the next output token.
 
-$$p_{RAG-Token}(y|x)\approx\prod\limits_{i}^{N}\sum\limits_{z\in top-k(p(\cdot|x))}p_{\eta}(z|x)p_{\theta}(y_i|x,z,y_{1:i-1})$$
+$$p_{RAG-Token}(y|x)\approx\prod\limits_{i}^{N}\sum\limits_{z\in top-k(p(\cdot|x))}p_{\eta}(z|x)p_{\theta}(y_i|x,z_i,y_{1:i-1})$$
 
 RAG can be used for sequence classification tasks by considering the target class as a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent. The retriever component follows a bi-encoder architecture of DPR<sup>[\[30\]](#ref30)</sup>:
 
@@ -392,9 +392,9 @@ where $$\mathrm{d}(z)$$ is a dense representation of a document produced by a $$
 
 At test time, RAG-Sequence and RAG-Token use different ways to approximate $$\arg\max_y p(y$$\|$$x)$$. The RAG-Token is a standard autoregressive seq2seq generator with the transition probability below, which can be plugged into a standard beam detector.
 
-$$p'_{\theta}(y_i|x,y_{1:i-1})=\sum\limits_{z\in top-k(p(\cdot|x))}p_{\eta}(z|x)p_{\theta}(y_i|x,z,y_{1:i-1})$$
+$$p'_{\theta}(y_i|x,y_{1:i-1})=\sum\limits_{z\in top-k(p(\cdot|x))}p_{\eta}(z|x)p_{\theta}(y_i|x,z_i,y_{1:i-1})$$
 
-The RAG-Sequence cannot solve the max likelihood with a single beam search. The set of candidate tokens of a beam search for a document may not be a candidate for other documents. For "Thorough Decoding", an additional forward pass for each document $$z$$ is run to estimate $$p_{\theta}(y$$\|$$x,z)$$ for which $$y$$ does not appear in the beam, multiplied with generator probability $$p_{\eta}(z$$\|$$x)$$, and summed up across beams for the documents. For "Fast Decoding", it is assumed that $$p_{\theta}(y$$\|$$x,z)\approx 0$$ for $$y$$ not in the beam and no additional forward pass is run.
+The RAG-Sequence cannot solve the max likelihood with a single beam search. The set of candidate tokens of a beam search for a document may not be a candidate for other documents. For "Thorough Decoding", an additional forward pass for each document $$z$$ is run to estimate $$p_{\theta}(y$$\|$$x,z_i)$$ for which $$y$$ does not appear in the beam, multiplied with generator probability $$p_{\eta}(z$$\|$$x)$$, and summed up across beams for the documents. For "Fast Decoding", it is assumed that $$p_{\theta}(y$$\|$$x,z_i)\approx 0$$ for $$y$$ not in the beam and no additional forward pass is run.
 
 A single Wikipedia dump from December 2018 is used as non-parametric knowledge source. Each Wikipedia article is split into disjoint 100-word chunks (documents). Each document is encoded into an embedding and MIPS index is built using FAISS<sup>[\[29\]](#ref29)</sup>. Efficient approximate nearest neighbor search is done using hierarchical navigable small world graphs<sup>[\[31\]](#ref31)</sup>. For top k documents, $$k\in\{5, 10\}$$ are considered.
 
