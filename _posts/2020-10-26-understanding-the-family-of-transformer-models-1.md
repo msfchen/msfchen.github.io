@@ -33,7 +33,7 @@ Language understanding and language generation are inherently sequential process
         - [REALM](#realm)
         - [RAG](#rag)
         - [FiD](#fid)
-    - [Combined Autoencoding and Autoregrssive Language Models](#combined-autoencoding-and-autoregrssive-language-models)
+    - [Combined Autoencoding and Autoregressive Language Models](#combined-autoencoding-and-autoregressive-language-models)
         - [PALM](#palm)
 - [Codes](#codes)
 - [References](#references)
@@ -408,8 +408,7 @@ The generation diversity is measured by the ratio of distinct trigrams to total 
 
 #### **FiD**
 
-Izacard and Grave, 2020<sup>[\[34\]](#ref34)</sup> introduce FiD (**F**usion-**i**n-**D**ecoder) model that modifies RAG by performing evidence fusion in the decoder. The retriever uses either sparse representations based on BM25 (a variant of TF-IDF) or dense embeddings computed using two BERT networks to represent questions and passages. The ranking function is the dot
-product between the question and passage representations. Retrieval is performed using approximate nearest neighbors with the Facebook Research FAISS library. The generator is based on a pre-trained T5 seq2aeq network that takes as input the question and the support passages and generates the answer for open domain question answering tasks. Each retrieved passage and its title are concatenated with the question, and processed independently from other passages by the encoder. Special tokens $$\mathrm{question}$$:, $$\mathrm{title}$$:, and $$\mathrm{context}$$: before the question, title, and text of each passage. The resulting representations of all the retrieved passages are concatenated into a single representation that is passed through the attention mechanism of the decoder, as illustrated in the figure below.
+Izacard and Grave, 2020<sup>[\[34\]](#ref34)</sup> introduce FiD (**F**usion-**i**n-**D**ecoder) model that modifies RAG by performing evidence fusion in the decoder. The model consists of two modules: (1) Retriever - the retriever uses either sparse representations based on BM25 (a variant of TF-IDF) or dense embeddings based on DPR (two BERT networks) to represent questions and passages. The ranking function is the dot product between the question and passage representations. Retrieval is performed using approximate nearest neighbors with the Facebook Research FAISS library. (2) Reader - The reader/generator is based on a pre-trained T5 seq2aeq network that takes as input the question and the support passages and generates the answer for open domain question answering tasks. Each retrieved passage and its title are concatenated with the question, and processed independently from other passages by the encoder. Special tokens $$\mathrm{question}$$:, $$\mathrm{title}$$:, and $$\mathrm{context}$$: are added before the question, title, and text of each passage. The resulting representations of all the retrieved passages are concatenated into a single representation that is passed through the cross-attention mechanism of the decoder, as illustrated in the figure below.
 <p align="center"><img src="../../../assets/images/FiD.png"></p>
 Processing passages independently in the encoder allows to scale to large number of contexts, as it only performs self-attention over one context at a time. On the other hand, processing
 passages jointly in the decoder allows to better aggregate evidence from multiple passages. Two model sizes, base and large, are considered with 220M and 770M parameters, respectively.
@@ -418,7 +417,7 @@ Three open domain QA datasets, NaturalQuestions (NQ), TriviaQA, and SQuAD v1.1 a
 
 FiD outperforms existing work, including GPT-3, T5, REALM, and RAG on the NQ and TriviaQA benchmarks. Experiments on the number of retrieved passages at both fine-tuning training and test time show that increasing the number of passages from 10 to 100 leads to 6% improvement on TriviaQA and 3.5% improvement on NQ. On the other hand, the performance of most extractive models seems to peak around 10 to 20 passages, suggesting that sequence-to-sequence models are good at combining information from multiple passages. Reducing the number of retrieved passages at training time. but not test time (kept at 100), leads to a decreased performance.
 
-### **Combined Autoencoding and Autoregrssive Language Models**
+### **Combined Autoencoding and Autoregressive Language Models**
 
 The autoregressive models of GPT-subfamily lack an encoder to condition generation on context. The masked autoencoding models of BERT-subfamily lacks an autoregressive decoder for generation tasks. The denoising encoder-decoder models of BART has a learning objective mismatch between pre-training and fine-tuning on comprehension-based generation tasks like abstractive summarization, generative question answering, question generation, and conversational response generation. Some studies have tried to combine the merits of autoencoding and autoregression in a single model. 
 
