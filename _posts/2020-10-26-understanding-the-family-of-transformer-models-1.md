@@ -32,6 +32,7 @@ Language understanding and language generation are inherently sequential process
     - [Retrieval-Augmented Language Models](#retrieval-augmented-language-models)
         - [REALM](#realm)
         - [RAG](#rag)
+        - [FiD](#fid)
     - [Combined Autoencoding and Autoregrssive Language Models](#combined-autoencoding-and-autoregrssive-language-models)
         - [PALM](#palm)
 - [Codes](#codes)
@@ -327,7 +328,7 @@ The 6 tasks from EXTREME multilingual benchmark are used to evaluate the mT5 mod
 
 ### **Retrieval-Augmented Language Models**
 
-In all the models discussed above, the learned knowledge is stored implicitly in the parameters of the models. Alternatively, knowledge from a large corpus can be explicitly retrieved by a retriever component of a language model during pre-training, fine-tuning, and inference. Two examples, REALM and RAG, are reviewed here. REALM uses BERT's encoder as an autoencoding generator, while RAG uses BART's seq2seq model as an autoregressive generator.
+In all the models discussed above, the learned knowledge is stored implicitly in the parameters of the models. Alternatively, knowledge from a large corpus can be explicitly retrieved by a retriever component of a language model during pre-training, fine-tuning, and inference. Three examples, REALM, RAG, and FiD, are reviewed here. REALM uses BERT's encoder as an autoencoding generator, while RAG and FiD use BART's and T5's, respectively, seq2seq model as an autoregressive generator.
 
 #### **REALM**
 
@@ -404,6 +405,18 @@ A single Wikipedia dump from December 2018 is used as non-parametric knowledge s
 The RAG models are evaluated with 4 types of knowledge-intensive tasks: (1) Open-domain Question Answering, (2) Abstractive Question Answering, (3) Jeopardy Question Generation, and (4) Fact Verification. Four open-domain QA datasets are used for the first task: Natural Questions (NQ), TriviaQA (TQA), WebQuestions (WQ), and CuratedTrec (CT). On all four datasets, RAG sets a new state of the art, exceeding either extractive QA paradigm (DPR, REALM) or "Closed-Book QA" (T5-11B+SSM<sup>[\[32\]](#ref32)</sup>). RAG can generate correct answers even when the correct answer is not in any retrieved document. For abstractive QA, the MSMARCO NLG task v2.1 is used, which consists of questions, 10 gold passages per question, and a full sentence answer annotated from the passages. Only the questions and answers, not the passages, are used in this study. RAG outperforms BART, but significantly underperforms PALM. The third task is an open-domain question generation task where Jeopardy-style questions are generated given their answer entities as input. SearchQA dataset is used and Q-BLEU-1 score is measured. In addition, two human evaluations are used to measure factuality and specificity of the generated questions. RAG-Token performs better than RAG-Sequence on Jeopardy question generation, with both models outperforming BART on Q-BLEU-1. RAG generations are more factual and more specific than BART generations by large margins. For the 4th task, FEVER dataset is used, where a given natural language claim needs to be classified to be supported, refuted, or unverifiable from Wikipedia alone. RAG outperforms BART, but significantly underperforms current state-of-the-art models. 
 
 The generation diversity is measured by the ratio of distinct trigrams to total trigrams generated. RAG-Sequence's generations are more diverse than RAG-Token's, and both are significantly more diverse than BART without needing any diversity-promoting decoding. Retrieval ablation studies show that RAG's learned retrieval improves results on all tasks, especially for Open-Domain QA, where it is crucial. An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time, such as index hot-swapping. Retrieving more documents at test time monotonically improves Open-domain QA results for RAG-Sequence, but performance peaks for RAG-Token at 10 retrieved documents. RAG is the first model to show that a single retrieval-augmented architecture is capable of achieving strong performance across several tasks.
+
+#### **FiD**
+
+Izacard and Grave, 2020<sup>[\[34\]](#ref34)</sup> introduce FiD (**F**usion-**i**n-**D**ecoder) model that modifies RAG by performing evidence fusion in the decoder. The retriever uses either sparse representations based on BM25 (a variant of TF-IDF) or dense embeddings computed using two BERT networks to represent questions and passages. The ranking function is the dot
+product between the question and passage representations. Retrieval is performed using approximate nearest neighbors with the Facebook Research FAISS library. The generator is based on a pre-trained T5 seq2aeq network that takes as input the question and the support passages and generates the answer for open domain question answering tasks. Each retrieved passage and its title are concatenated with the question, and processed independently from other passages by the encoder. Special tokens $$\mathrm{question}$$:, $$\mathrm{title}$$:, and $$\mathrm{context}$$: before the question, title, and text of each passage. The resulting representations of all the retrieved passages are concatenated into a single representation that is passed through the attention mechanism of the decoder, as illustrated in the figure below.
+<p align="center"><img src="../../../assets/images/FiD.png"></p>
+Processing passages independently in the encoder allows to scale to large number of contexts, as it only performs self-attention over one context at a time. On the other hand, processing
+passages jointly in the decoder allows to better aggregate evidence from multiple passages. Two model sizes, base and large, are considered with 220M and 770M parameters, respectively.
+
+Three open domain QA datasets, NaturalQuestions (NQ), TriviaQA, and SQuAD v1.1 are used to evaluate the models. The evidence corpus for retrieval is Wikipedia dumps of December 20, 2018 for NQ and TriviaQA and of December 21, 2016 for SQuAD. Preprocessing is applied to obtain non-overlapping passages of 100 words. Predicted answers are evaluated with the standard exact match metric (EM). The fine-tuning of the models on each dataset is done independently. For both training and testing, **100 passages** are retrieved and each is truncated to 250 wordpieces. Passages are retrieved with dense representations for NQ and TriviaQA and with sparse representations for SQuAD. Greedy decoding is used for answer generation.
+
+FiD outperforms existing work, including GPT-3, T5, REALM, and RAG on the NQ and TriviaQA benchmarks. Experiments on the number of retrieved passages at both fine-tuning training and test time show that increasing the number of passages from 10 to 100 leads to 6% improvement on TriviaQA and 3.5% improvement on NQ. On the other hand, the performance of most extractive models seems to peak around 10 to 20 passages, suggesting that sequence-to-sequence models are good at combining information from multiple passages. Reducing the number of retrieved passages at training time. but not test time (kept at 100), leads to a decreased performance.
 
 ### **Combined Autoencoding and Autoregrssive Language Models**
 
@@ -515,3 +528,5 @@ translation system: Bridging the gap between human and machine translation](http
 <a name="ref32">[32]</a> Roberts, A., Raffel, C., and Shazeer, N. (2020) [How Much Knowledge Can You Pack Into the Parameters of a Language Model?](https://arxiv.org/pdf/2002.08910.pdf) arXiv preprint arXiv:2002.08910
 
 <a name="ref33">[33]</a> Bi, B., Li, C., Wu, C., Yan, M., Wang, W., Huang, S., Huang, F., Si, L. (2020) [PALM: Pre-training an Autoencoding&Autoregressive Language Model for Context-conditioned Generation](https://arxiv.org/pdf/2004.07159.pdf) arXiv preprint arXiv:2004.07159
+
+<a name="ref34">[34]</a> Izacard, G., Grave, E. (2020) [Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering](https://arxiv.org/pdf/2007.01282.pdf) arXiv preprint arXiv:2007.01282
