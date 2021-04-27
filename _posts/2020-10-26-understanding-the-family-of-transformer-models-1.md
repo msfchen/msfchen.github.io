@@ -33,7 +33,7 @@ Language understanding and language generation are inherently sequential process
         - [REALM](#realm)
         - [RAG](#rag)
         - [FiD](#fid)
-        - [FiD Retriever Training](#fid-retriever-training)
+        - [Retriever-Enhanced FiD](#retriever-enhanced-fid)
     - [Combined Autoencoding and Autoregressive Language Models](#combined-autoencoding-and-autoregressive-language-models)
         - [PALM](#palm)
 - [Codes](#codes)
@@ -418,7 +418,7 @@ Three open domain QA datasets, NaturalQuestions (NQ), TriviaQA, and SQuAD v1.1 a
 
 FiD outperforms existing work, including GPT-3, T5, REALM, and RAG on the NQ and TriviaQA benchmarks. Experiments on the number of retrieved passages at both fine-tuning training and test time show that increasing the number of passages from 10 to 100 leads to 6% improvement on TriviaQA and 3.5% improvement on NQ. On the other hand, the performance of most extractive models seems to peak around 10 to 20 passages, suggesting that sequence-to-sequence models are good at combining information from multiple passages. Reducing the number of retrieved passages at training time. but not test time (kept at 100), leads to a decreased performance.
 
-#### **FiD Retriever Training**
+#### **Retriever-Enhanced FiD**
 
 Izacard and Grave, 2020b<sup>[\[35\]](#ref35)</sup> further improve the FiD model by leveraging the cross-attention score of the reader as the target to train the retriever. It is hypothesized that the cross-attention score from an output (answer) to an input (retrieved passages) of the reader is a good proxy for the relevance of the retrieved passages to the question that the answer is paired with, that is, the more the tokens in a text segment are attended to, the more relevant the text segment is to answer the question. This training scheme can be seen as a student-teacher pipeline, where the reader is the teacher, the retriever is the student, and the knowledge of cross attention scores of the reader is distilled to teach the retriever to select the most relevant passages.
 
