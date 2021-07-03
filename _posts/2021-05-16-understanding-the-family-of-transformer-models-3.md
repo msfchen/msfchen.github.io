@@ -8,11 +8,12 @@ The goal of an open-domain chatbot is to optimize long-term user engagement by s
 - [Retrieval-based Approaches](#retrieval-based-approaches)
     - [Poly-encoders](#poly-encoders)
     - [BlendedSkillTalk](#blendedskilltalk)
-    - [Dialogue Flow Aware Query-to-Session Matching Model](#dialogue-flow-aware-query-to-session-matching-model)
-    - [Personalized Hybrid Matching Network](#personalized-hybrid-matching-network)
+    - [DF-QSM](#df-qsm)
+    - [PHMN](#phmn)
 - [Generation-based Approaches](#generation-based-approaches)
     - [DialoGPT](#dialogpt)
     - [Meena](#meena)
+    - [PLATO-2](#plato-2)
 - [Hybrid Approaches](#hybrid-approaches)
     - [Recipes](#recipes)
 - [Codes](#codes)
@@ -61,7 +62,7 @@ Automatic metrics on the BlendedSkillTalk test set are evaluated either zero-sho
 
 Human evaluation results show that the Overall Quality is in the order: MT Single-Skills + BST (3.6) $$>$$ MT Two-Stage (3.5) $$>$$ MT Single-Skills (3.4) $$>$$ BST (3.3) $$>$$ ConvAI2 (3.0), ED (3.0) $$>$$ Random-Skill (2.7) $$>$$ WoW (2.6). The top two methods have different advantages. The MT Single-Skills + BST method is more compact in model size, but requires joint multi-task training, then fine-tuning. The MT Two-Stage method only requires training a classifier, but is a much bigger model that uses large models for each of the three single-skill and the classifier models.
 
-### **Dialogue Flow Aware Query-to-Session Matching Model**
+### **DF-QSM**
 
 Traditional multi-turn retrieval-based chatbots select the most appropriate response from a set of candidate responses based on query-to-response matching models, without considering other turns within the same chat session. Fu et al., 2020<sup>[\[8\]](#ref8)</sup> introduced Dialogue Flow Aware Query-to-Session Matching (DF-QSM) Model that selects the most appropriate response from a set of candidate sessions, each of which contains multiple turns. The DF-QSM model outperforms existing state-of-the-art methods by a large margin on three common benchmarks.
 
@@ -125,7 +126,7 @@ DF-QSM model significantly outperforms the state-of-the-art IoI (Interaction-ove
 
 Average inference time comparison studies show that DF-QSM and IoI-QRM have similar inference efficiency but IoI-QSM is about 6-fold slower than IoI-QRM. The relationship between memory updating weight $$\alpha$$ and the turn index shows that the farther the utterance to the response, the less this utterance contributes to the QSM matching task. The relationship between the future size and the performance shows that the performance increases as the future (and session) size increases, especially for the Ubuntu corpus and E-commerce corpus. For the Douban corpus, it becomes almost flattening after the second turn, probably because the Douban corpus contains more open-domain conversation in which the topics change a lot with the dialogue progressing.
 
-### **Personalized Hybrid Matching Network**
+### **PHMN**
 
 To leverage personal wording behavior in context-response matching process, Li et al., 2021<sup>[\[9\]](#ref9)</sup> introduced Personalized Hybrid Matching Network (PHMN) that incorporates hybrid representations in context and response and personalized dialogue history. As shown in the figure below, the PHMN comprises three main sub-modules: (1) hybrid representation learning module, (2) personalized dialogue content modeling, (3) aggregation and fusion.
 <p align="center"><img src="../../../assets/images/PHMN.png"></p>
@@ -163,7 +164,7 @@ The PHMN model significantly outperforms all other models in all metrics and ach
 
 ## **Generation-based Approaches**
 
-Application of Transformer to generation-based open-domain chatbots typically involves directly using a Transformer variant-based autoregressive language model, without complex modules, such as dialog manager. Although both are Transformer variant-based, a generation-based chatbot differs from an autoregressive language model in two main areas: (1) pre-training dataset and (2) decoding algorithms. A chatbot typically uses a large conversation corpus, instead of web scrapes or Wikipedia, as the pre-training dataset. To reduce the problem of dull and short outputs, commonly seen in autoregressive language models, most generation-based open-domain chatbots include some novel decoding algorithms, such as the maximum mutual information (MMI) re-ranking method in DialoGPT and Sample-and-Rank at Temperature T method in Meena.
+Application of Transformer to generation-based open-domain chatbots typically involves directly using a Transformer variant-based autoregressive language model, without complex modules, such as dialog manager. Although both are based on Transformer variants, a generation-based chatbot differs from an autoregressive language model in two main areas: (1) pre-training dataset and (2) decoding algorithms. Chatbots are pre-trained with large conversational corpora collected from social media, instead of general text, such as web scrapes or Wikipedia. Generation-based chatbots tend to produce generic and dull responses, which have led to several novel decoding algorithms, such as the maximum mutual information (MMI) re-ranking method in DialoGPT, Sample-and-Rank at Temperature T method in Meena, latent speech act and coherence estimation models in PLATO-2, and minimum beam length in Recipes (a.k.a. Blender).
 
 ### **DialoGPT**
 
@@ -201,13 +202,69 @@ Meena uses a simple sample-and-rank decoding strategy, where $$N$$ independent c
 
 Another version of Meena is referred to as Meena (full) or just Meena with the following improvements. The interactive SSA is increased from 72% to 74% by changing from $$T=0.88$$ and sampling from the whole vocabulary to $$T=1.0$$ and sampling from top-k (k=40). The number of samples, $$N$$, in sample-and-rank is swept over {1, 20, 400}; $$N=20$$ yields the highest SSA. The interactive SSA is further increased from 74% to 79% by automatically removing candidate responses that are detected as repetition based on the presence of long common sub-sequences with an earlier turn. An additional classifier layer is added at serving time to automatically filter out potentially sensitive or toxic response candidates.
 
+### **PLATO-2**
+
+Bao et al., 2020<sup>[\[10\]](#ref10)</sup> introduced **PLATO-2** that uses a 2-stage curriculum learning to build an open-domain chatbot that achieves new state-of-the-art results. The idea of curriculum learning is to first learn easier aspects of the task or easier subtasks, and then gradually increase the difficulty level. In the first stage of this study, a coarse-grained model is trained for general response generation, just like DialoGPT and Meena above. In the second stage, a fine-grained generation model and an evaluation model are trained for diverse response generation and response coherence estimation, respectively.
+
+The backbone of PLATO-2 is consisted of the encoder portion of the Transformer blocks with pre-normalization. The model parameters are shared across different learning objectives. Different self-attention masks are used to control access to context for each word token, which is bi-directional context encoding and uni-directional response decoding, as illustrated in the Figure below.
+<p align="center"><img src="../../../assets/images/PLATO-2.png"></p>
+During stage 1, the coarse-grained baseline model is first trained to learn general response generation under the simplified relationship of one-to-one context-response mapping. Given one training sample
+of context and response $$(c,r)$$, the objective is to minimized the following negative log-likelihood (NLL) loss:
+
+$$\mathcal{L}_{NLL}^{\mathrm{Baseline}}=-\mathrm{\mathbb{E}}\log p(r|c)=-\mathrm{\mathbb{E}}\sum_{t=1}^T\log p(r_t|c,r_{<t})$$
+
+, where $$T$$ is the length of the target response $$r$$ and $$r_{<t}$$ denotes previously generated words.
+
+During stage 2.1, a discrete latent variable $$z$$ is introduced for the one-to-many context-response relationship modeling. $$z$$ is a $$K$$-way categorical variable; each of the $$K$$ values corresponds to a particular latent speech act in the response. The model will first estimate the latent act distribution of the training sample $$p(\mathrm{\mathbf{z}}$$\|$$c,r)$$ and then generate the response with the sampled latent variable $$p(r$$\|$$c,z)$$. It is notable that these two tasks of response generation and latent act recognition are trained jointly within the shared network. The posterior distribution over latent values is estimated through the task of latent act recognition:
+
+$$p(\mathrm{\mathbf{z}}|c,r)=\mathrm{softmax}(W_1h_{[\mathrm{M}]}+b_1)\in\mathrm{\mathbb{R}}^K$$
+
+, where $$h_{[\mathrm{M}]}\in\mathrm{\mathbb{R}}^D$$ is the final hidden state of the special mask token $$[\mathrm{M}]$$, $$W_1\in\mathrm{\mathbb{R}}^{K\times D}$$ and $$b_1\in\mathrm{\mathbb{R}}^K$$ denote the weight matrices of one fully-connected layer. The NLL loss of diverse response generation is defined as:
+
+$$\mathcal{L}_{NLL}^{\mathrm{Generation}}=-\mathrm{\mathbb{E}}_{z\sim p(\mathrm{\mathbf{z}}|c,r)}\log p(r|c,z)=-\mathrm{\mathbb{E}}_{z\sim p(\mathrm{\mathbf{z}}|c,r)}\sum_{t=1}^T\log p(r_t|c,z,r_{<t})$$
+
+, where $$z$$ is the latent act sampled from $$p(\mathrm{\mathbf{z}}$$\|$$c,r)$$. To facilitate the training process of discrete latent variables, the bag-of-words (BOW) loss is also employed:
+
+$$\mathcal{L}_{BOW}^{\mathrm{Generation}}=-\mathrm{\mathbb{E}}_{z\sim p(\mathrm{\mathbf{z}}|c,r)}\sum_{t=1}^T\log p(r_t|c,z)=-\mathrm{\mathbb{E}}_{z\sim p(\mathrm{\mathbf{z}}|c,r)}\sum_{t=1}^T\log\frac{e^{f_{r_t}}}{\sum_{v\in V}e^{f_v}}$$
+
+, where $$V$$ refers to the whole vocabulary. The function $$f$$ tries to predict the words within the target response in a non-autoregressive way: $$f=W_2h_z+b_2\in\mathrm{\mathbb{R}}^{\mid V\mid}$$, where $$h_z$$ is the final hidden state of the latent variable. $$f_{r_t}$$ denotes the estimated probability of word $$r_t$$. In comparison with NLL loss, the BOW loss discards word orders and forces the latent variable to capture the global information of target response. The objective of the fine-grained generation model is to minimize the following integrated loss:
+
+$$\mathcal{L}^{\mathrm{Generation}}=\mathcal{L}_{NLL}^{\mathrm{Generation}}+\mathcal{L}_{BOW}^{\mathrm{Generation}}$$
+
+During stage 2.2, the most appropriate response is selected from a set of diverse candidate responses, each of which corresponds to a distinct value of the latent variable used by the fine-grained generation model. The approach is to train an evaluation model for the estimation of the coherence between each candidate response and the given dialogue context. The loss of response coherence estimation (RCE) is defined as follows:
+
+$$\mathcal{L}_{RCE}^{\mathrm{Evaluation}}=-\log p(l_r=1|c,r)-\log p(l_{r^-}=0|c,r^-)$$
+
+The positive training samples come from the dialogue context and corresponding target response $$(c,r)$$, with coherence label $$l_r=1$$. The negative samples are created by randomly selecting responses from the corpus $$(c,r^-)$$, with coherence label $$l_{r^-}=0$$. The discriminative function $$p(l_r$$\|$$c,r)$$ considers the bi-directional information flow between the dialogue context and response. To maintain the capacity of distributed representation, the task of masked language model (MLM) is also included in the evaluation network, which randomly masks 15% of the input tokens for the network to recover. The MLM loss is defined as:
+
+$$\mathcal{L}_{MLM}^{\mathrm{Evaluation}}=-\mathrm{\mathbb{E}}\sum_{m\in M}\log p(x_m|x_{\backslash M})$$
+
+, where $$x$$ refers to the input tokens of context and response. $$\{x_m\}_{m\in M}$$ stands for masked tokens and $$x_{\backslash M}$$ denotes the unmasked tokens. The objective of the evaluation model is to minimize the following integrated loss:
+
+$$\mathcal{L}^{\mathrm{Evaluation}}=\mathcal{L}_{RCE}^{\mathrm{Evaluation}}+\mathcal{L}_{MLM}^{\mathrm{Evaluation}}$$
+
+The inference is carried out with the second stage's models in two steps: (1) Diverse response generation, in which the fine-grained generation model $$p(r_z$$\|$$c,z)$$ produces $$K$$ candidate responses, each $$r_z$$ corresponding to a latent value $$z\in\{1,...,K\}$$; (2) Response coherence estimation, in which the evaluation model performs ranking and selects the one with the highest coherence value as the final response $$r^*=\mathrm{argmax}_{r_z}p(l_{r_z}=1$$\|$$c,r_z)$$
+
+The English training data is extracted from pushshift.io Reddit. After elaborate filtering, the data is split into training and validation sets in chronological order, containing 684M and 0.2M (context, response) samples, respectively. The Chinese training data is collected from public domain social medias. After filtering, there are 1.2B, 0.1M, 0.1M (context, response) samples in the training, validation, and test sets, respectively. The English vocabulary and the Chinese vocabulary contain 8K and 30K BPE tokens, respectively. English PLATO-2 has three sizes: 9.3M, 314M, and 1.6B parameters. Chinese PLATO-2 has only one size, 336M parameters. The maximum sequence lengths of context and response are all set to 128. $$K$$ is set to 20 for the discrete latent variable.
+
+Both automatic and human evaluations are used in this study. In automatic evaluation, the corpus-level metric of distinct-1/2 is used to assess the model's capacity on lexical diversity, which is defined as the number of distinct uni- or bi-grams divided by the total number of generated words. In human evaluation, four metrics are used, including two utterance-level metrics: coherence and informativeness, two dialogue-level metrics: engagingness and humanness. Three crowd-sourcing workers are asked to score the response/dialogue quality on a scale of
+[0, 1, 2], with the final score determined through majority voting. The higher score, the better.
+
+In self-chat evaluations, a model plays the role of both partners in the conversation and the chat logs are evaluated by crowd-sourcing workers. Each self-chat conversation is started with a given pre-selected topic (from the classical 200 questions). There are 10 utterances in each dialogue, including the input start utterance. Automatic evaluation is carried out on the 200 self-chat logs and human evaluation is conducted on 50 randomly selected conversations. Models are compared in three pairs: (PLATO-2 93M, PLATO 132M), (PLATO-2 310M, DialoGPT 345M), and (PLATO-2 1.6B, Blender 2.7B). Two self-chat logs with the same start topic from a pair are displayed to three crow-sourcing workers who are instructed to evaluate only one speaker within a dialogue. The self-chat evaluation results indicate that PLATO-2 1.6B model obtains the best performance across human and automatic evaluations. PLATO-2 outperforms Blender, DiaoGPT, and PLATO in each of the three pairs. The results also show that enlarging model scales and exploiting human annotated conversations (Blender) help improve the dialogue quality.
+
+In the Chinese evaluation, the pair (PLATO-2 336M Chinese, Microsoft XiaoIce) are compared using human-bot chat evaluation where each interactive conversation is started with a pre-selected topic and continues for 7~14 rounds. The collected human-bot conversations are evaluated by crowd-sourcing workers. The XiaoIce obtains higher distinct values, suggesting that a retrieval-based strategy may yield better lexical diversity than a generation-based approach. The human evaluations indicate that PLATO-2 significant outperforms XiaoIce across all the human evaluation metrics.
+
+To include Meena for comparison, static evaluation is used, where each model produces a response towards the given multi-turn context. The 60 static samples in the Meena paper are used. In all the three human evaluation metrics, coherence, informativeness, and engagingness, the performance is in the order: $$PLATO$$-$$2$$ $$1.6B > Blender > Meena > DialoGPT$$. Some case analyses show that Blender tends to switch topics quickly in a short conversation, but PLATO-2 can stick to the start topic and conduct in-depth discussions.
+
+Furthermore, PLATO-2 has achieved the first place in three tasks of DSTC9, including interactive evaluation of open-domain conversation (Track3-task2), static evaluation of knowledge grounded dialogue (Track3-task1), and end-to-end task-oriented conversation (Track2-task1)<sup>[\[11\]](#ref11)</sup>.
+
 ## **Hybrid Approaches**
 
 Retrieval-based approaches cannot generate sentences that are not already existing in the pre-collected dataset. On the other hand, generation-based approaches tend to produce dull and repetitive responses and may hallucinate knowledge. Hybrid approach can alleviate these problems by combining a retrieval step before generation.
 
 ### **Recipes**
 
-Roller et al., 2020<sup>[\[7\]](#ref7)</sup> introduced **Recipes** for building an open-domain chatbot by using Blended Skill Talk (BST) set-up and comparing the performance of retrieval, generative, and hybrid models. Their best models significantly outperform Meena in human evaluations of engagingness and humanness.
+Roller et al., 2020<sup>[\[7\]](#ref7)</sup> introduced **Recipes** (also known as Blender) for building an open-domain chatbot by using Blended Skill Talk (BST) set-up and comparing the performance of retrieval, generative, and hybrid models. Their best models significantly outperform Meena in human evaluations of engagingness and humanness.
 
 The retriever model uses poly-encoder architecture<sup>[\[5\]](#ref5)</sup>. Two sizes are considered: 256M and 622M parameter models, both using $$N=64$$, the number of encoded representations (codes) for the context. The generator model uses standard Seq2Seq Transformer architecture. Three sizes are considered: 90M, 2.7B, and 9.4B parameters. The 2.7B parameter model roughly mimics the architecture choices of Meena, with 2 encoder layers, 24 decoder layers, 2560-dimensional embedding, and 32 attention heads. The 9.4B parameter model has 4 encoder layers, 32 decoder layers, 4096-dimensional embedding, and 32 attention heads. The hybrid model is referred to as a Retrieve and Refine (RetNRef), where a retrieval step is done before the generation. Two variants for the retrieval step are considered: dialogue retrieval and knowledge retrieval. In the dialogue retrieval variant, the retrieval step simply uses the poly-encoder retriever. The retriever first produces a response for the given dialogue history. The response is then appended to the input sequence of the generator, along with a special separator token. The generator then outputs a response as normal given this modified input sequence. In the knowledge retrieval variant, the retrieval system first uses a TF-IDF-based inverted index lookup over a Wikipedia dump to produce an initial set of knowledge candidates. Then, a Transformer-based poly-encoder retriever model is used to rank the candidates and select a single sentence that is used to condition generation. Additionally, a Transformer-based two-class classifier is trained to determine whether a context requires knowledge or not in fine-tuning tasks.
 
@@ -242,6 +299,8 @@ In human-bot chat evaluations, conversation data are collected from open-ended c
 - [DF-QSM](https://github.com/fuzhenxin/Query-Session-Matching-CIKM2020)
 - [DialoGPT](https://github.com/microsoft/DialoGPT) or [DialoGPT](https://huggingface.co/microsoft/DialoGPT-medium)
 - [Recipes](https://parl.ai/projects/recipes/)
+- [PLATO](https://github.com/PaddlePaddle/Research/tree/master/NLP/Dialogue-PLATO)
+- [PLATO-2](https://github.com/PaddlePaddle/Knover/tree/develop/projects/PLATO-2)
 
 ## **References**
 
@@ -262,3 +321,7 @@ In human-bot chat evaluations, conversation data are collected from open-ended c
 <a name="ref8">[8]</a> Fu, Z., Cui, S., Ji, F. Zhang, J., Chen, H., Zhao, D., and Yan, R. (2020) [Query-to-Session Matching: Do NOT Forget History and Future during Response Selection for Multi-Turn Dialogue Systems](https://dl.acm.org/doi/10.1145/3340531.3411938). In: Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM ’20), October 19–23, 2020, Virtual Event, Ireland. ACM, New York, NY, USA, 10 pages.
 
 <a name="ref9">[9]</a> Li, J., Liu, C., Tao, C., Chan, Z., Zhao, D., Zhang, M., and Yan, R. (2021) [Dialogue History Matters! Personalized Response Selection in Multi-turn Retrieval-based Chatbots](https://arxiv.org/pdf/2103.09534.pdf). arXiv preprint arXiv:2103.09534
+
+<a name="ref10">[10]</a> Bao, S., He, H., Wang, F., Wu, H., Wang, H., Wu, W., Guo, Z., Liu, Z., Xu, X. (2020) [PLATO-2: Towards Building an Open-Domain Chatbot via Curriculum Learning](https://arxiv.org/pdf/2006.16779.pdf). arXiv preprint arXiv:2006.16779
+
+<a name="ref11">[11]</a> Bao, S., Chen, B., He, H., Tian, X., Zhou, H., Wang, F., Wu, H., Wang, H., Wu, W., and Lin, Y. (2021) [A Unified Pre-training Framework for Conversational AI](https://arxiv.org/pdf/2105.02482.pdf). arXiv preprint arXiv:2105.02482
