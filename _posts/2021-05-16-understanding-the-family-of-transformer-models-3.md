@@ -538,9 +538,9 @@ In conclusion, retrieval-augmented generation significantly reduces the hallucin
 
 <a name="ref21">[21]</a> Gao, X., Zhang, Y., Galley, M., Brockett, C., and Dolan, B. (2020) [Dialogue Response Ranking Training with Large-Scale Human Feedback Data](https://arxiv.org/pdf/2009.06978.pdf). arXiv preprint arXiv:2009.06978
 
-<a name="ref22">[22]</a> Paranjape, A., See, A., Kenealy, K., Li, H., Hardy, A., Qi, P., Sadagopan, K.R., Phu, N.M., Soylu, D., Manning, C.D. (2020) [Neural Generation Meets Real People: Towards Emotionally Engaging Mixed-Initiative Conversations](https://arxiv.org/pdf/2008.12348.pdf). arXiv preprint arXiv:2008.12348
+<a name="ref22">[22]</a> Paranjape, A., See, A., Kenealy, K., Li, H., Hardy, A., Qi, P., Sadagopan, K.R., Phu, N.M., Soylu, D., Manning, C.D. (2020) [Neural Generation Meets Real People: Towards Emotionally Engaging Mixed-Initiative Conversations](https://arxiv.org/pdf/2008.12348.pdf). arXiv preprint arXiv:2008.12348
 
-<a name="ref23">[23]</a> Shuster, K., Poff, S., Chen, M., Kiela, D., Weston, J. (2021) [Retrieval Augmentation Reduces Hallucination in Conversation](https://arxiv.org/pdf/2104.07567.pdf). arXiv preprint arXiv:2104.07567
+<a name="ref23">[23]</a> Shuster, K., Poff, S., Chen, M., Kiela, D., Weston, J. (2021) [Retrieval Augmentation Reduces Hallucination in Conversation](https://arxiv.org/pdf/2104.07567.pdf). arXiv preprint arXiv:2104.07567
 
 <a name="ref24">[24]</a> Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., and Kiela, D. (2020) [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/pdf/2005.11401.pdf). arXiv preprint arXiv:2005.11401
 
