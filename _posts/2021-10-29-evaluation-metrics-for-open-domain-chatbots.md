@@ -213,7 +213,7 @@ Linguistic knowledge, such as synonyms, lemmas, contentful words, and grammatica
 
 ### **Machine-Learning-Based Automatic Metrics**
 
-Machine-learning-based automatic metrics can be divided into three categories: aspect-specific-classifier-based, word-embedding-based, and learning-based. An aspect-specific classifier approach trains a classifier to evaluate a single aspect of a text or a relation of texts, which is then used to formulate a dialog quality metric. A word embedding approach directly uses pre-trained word embeddings to represent contexts and responses of dialogs and uses embedding distances to formulate a dialog quality metric. A learning-based approach trains a scoring model specifically for dialog systems.
+Machine-learning-based automatic metrics can be divided into three categories: aspect-specific-classifier-based, word-embedding-based, and learning-based. An aspect-specific classifier approach trains a classifier to evaluate a single aspect of a text or a relation of texts, which is then used to formulate a dialog quality metric. A word embedding approach directly uses pre-trained word embeddings to represent contexts and responses of dialogs and uses embedding distances to formulate a dialog quality metric. A learning-based approach trains a model specifically for dialog quality scoring task.
 
 #### **Aspect-Specific-Classifier-Based Metrics**
 
