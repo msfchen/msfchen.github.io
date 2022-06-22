@@ -329,7 +329,7 @@ The 6 tasks from EXTREME multilingual benchmark are used to evaluate the mT5 mod
 
 ### **Retrieval-Augmented Language Models**
 
-In all the models discussed above, the learned knowledge is stored implicitly in the parameters of the models. Alternatively, knowledge from a large corpus can be explicitly retrieved by a retriever component of a language model during pre-training, fine-tuning, and inference. Three examples, REALM, RAG, and FiD, are reviewed here. REALM uses BERT's encoder as an autoencoding generator, while RAG and FiD use BART's and T5's, respectively, seq2seq model as an autoregressive generator.
+In all the models discussed above, the learned knowledge is stored implicitly in the parameters of the models. Alternatively, knowledge from a large corpus can be explicitly retrieved by a retriever component of a language model during pre-training, fine-tuning, and inference. Four examples, REALM, RAG, FiD, and Retriever-Enhanced FiD, are reviewed here. REALM uses BERT's encoder as an autoencoding generator, while RAG, FiD, and Retriever-Enhanced FiD use BART's or T5's seq2seq model as an autoregressive generator.
 
 #### **REALM**
 
