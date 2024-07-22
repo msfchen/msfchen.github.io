@@ -25,7 +25,7 @@ incur substantial costs; (2) requirements for large scale & long context window 
 
 The multifaceted nature of AGI is now well-documented, including some opposing facets, such as factual groundedness vs creativeness. Thus, it is challenging to come up with a single aggregated metric for AGI. In practice, it would be more beneficial to use a panel of AGIs, where the best-matching AGI will be automatically selected for the given task or subtask that can leverage its strength.
 
-**Postulate of Intelligence Formation.** Intelligence can be formed in a conditional generation system by training it with sufficiently large amount of high-quality knowledge to perform well above average human adult on all the tasks required for intelligence evaluations.
+**Postulate of Intelligence Formation.** Intelligence can be formed in a conditional language generation system by training it with sufficiently large amount of high-quality knowledge to perform well above average human adult on all the tasks required for intelligence evaluations.
 
 - [OpenAI](#openai)
     - [InstructGPT](#instructgpt)
